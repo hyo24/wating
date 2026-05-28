@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>지금줄 운영 페이지 — 정류장 요청 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f7f7f5;
+      --surface:#fff;
+      --surface2:#f2f1ee;
+      --border:rgba(0,0,0,.08);
+      --border2:rgba(0,0,0,.14);
+      --text:#111010;
+      --text2:#5a5855;
+      --text3:#9e9b96;
+      --accent:#ff3d2e;
+      --accent-soft:#fff0ef;
+      --accent-text:#c01c10;
+      --green:#1a7c4a;
+      --green-soft:#eaf5ee;
+      --amber:#8a5a00;
+      --amber-soft:#fdf3e3;
+      --blue:#2255cc;
+      --blue-soft:#eef4ff;
+      --r:16px;
+      --r-lg:24px;
+      --r-xl:32px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body {
+      font-family:'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    button, input, textarea, select { font:inherit; }
+    button { border:0; background:none; cursor:pointer; }
+    .shell { max-width:1220px; margin:0 auto; padding:18px 20px 80px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+    .brand { display:flex; align-items:center; gap:10px; font-size:22px; font-weight:900; letter-spacing:-.06em; }
+    .brand-icon {
+      width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff;
+      display:grid; place-items:center; transform:rotate(-3deg); font-size:16px; font-weight:900;
+    }
+    .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .hero {
+      background:var(--text); color:#fff; border-radius:var(--r-xl);
+      padding:26px 30px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:flex-end; gap:20px;
+      overflow:hidden; position:relative;
+    }
+    .hero:before {
+      content:""; position:absolute; width:240px; height:240px; border-radius:50%;
+      background:rgba(255,61,46,.18); right:-60px; top:-90px;
+    }
+    .hero h1 { font-size:clamp(26px,5vw,46px); line-height:1.05; letter-spacing:-.07em; font-weight:900; position:relative; }
+    .hero p { margin-top:10px; color:rgba(255,255,255,.62); font-size:14px; line-height:1.6; position:relative; word-break:keep-all; }
+    .hero-stats { display:flex; gap:10px; position:relative; z-index:1; }
+    .stat {
+      min-width:96px; padding:12px 14px; border-radius:18px; background:rgba(255,255,255,.09);
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .stat-num { font-family:'DM Mono', monospace; font-size:28px; color:#fff; }
+    .stat-label { font-size:11px; color:rgba(255,255,255,.52); font-weight:700; margin-top:2px; }
+
+    .grid { display:grid; grid-template-columns: 1fr 420px; gap:18px; align-items:start; }
+    .col { display:grid; gap:14px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
+    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
+    .card-title { font-size:16px; font-weight:900; letter-spacing:-.04em; }
+    .card-sub { font-size:12px; color:var(--text3); font-weight:700; margin-top:3px; line-height:1.5; }
+
+    .btn {
+      height:40px; padding:0 14px; border-radius:999px; border:1.5px solid var(--border2);
+      background:var(--surface); color:var(--text); font-size:12px; font-weight:900;
+      display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap;
+      transition:.12s transform, .12s background;
+    }
+    .btn:hover { background:var(--surface2); transform:translateY(-1px); }
+    .btn.primary { background:var(--text); color:#fff; border-color:var(--text); }
+    .btn.accent { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .btn.green { background:var(--green); color:#fff; border-color:var(--green); }
+    .btn.danger { background:#fff0ef; color:var(--accent-text); border-color:rgba(255,61,46,.2); }
+    .btn.small { height:32px; padding:0 10px; font-size:11px; }
+
+    .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+    .tab {
+      height:34px; padding:0 12px; border-radius:999px; background:var(--surface2);
+      color:var(--text2); font-size:12px; font-weight:900; border:1px solid var(--border);
+    }
+    .tab.on { background:var(--text); color:#fff; border-color:var(--text); }
+
+    .list { display:grid; gap:10px; }
+    .empty {
+      padding:28px 16px; text-align:center; border:1.5px dashed var(--border2); border-radius:var(--r-lg);
+      color:var(--text3); font-size:13px; font-weight:700; line-height:1.6;
+    }
+    .request-card, .stop-card {
+      border:1px solid var(--border); background:var(--surface); border-radius:var(--r); padding:14px;
+    }
+    .request-card.selected, .stop-card.selected { border-color:var(--accent); background:var(--accent-soft); }
+    .request-top, .stop-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .request-name, .stop-name { font-size:15px; font-weight:900; letter-spacing:-.04em; line-height:1.3; }
+    .request-route, .stop-routes { font-size:12px; color:var(--text2); font-weight:800; margin-top:5px; }
+    .request-meta { margin-top:10px; display:grid; gap:5px; font-size:12px; color:var(--text2); font-weight:600; line-height:1.5; }
+    .request-actions, .stop-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+    .badge {
+      flex:0 0 auto; padding:5px 8px; border-radius:999px; font-size:11px; font-weight:900;
+      background:var(--surface2); color:var(--text2);
+    }
+    .badge.pending { background:var(--amber-soft); color:var(--amber); }
+    .badge.approved { background:var(--green-soft); color:var(--green); }
+    .badge.rejected { background:#ffefef; color:var(--accent-text); }
+    .badge.done { background:var(--blue-soft); color:var(--blue); }
+
+    .form { display:grid; gap:12px; }
+    .field label { display:block; font-size:12px; color:var(--text2); font-weight:900; margin-bottom:6px; }
+    input, textarea, select {
+      width:100%; border:1.5px solid var(--border2); border-radius:var(--r);
+      background:var(--surface); color:var(--text); outline:0; font-size:13px; font-weight:700;
+    }
+    input, select { height:44px; padding:0 12px; }
+    textarea { min-height:84px; padding:12px; resize:vertical; line-height:1.5; }
+    input:focus, textarea:focus, select:focus { border-color:var(--accent); }
+    .help { font-size:11px; color:var(--text3); font-weight:700; line-height:1.5; margin-top:5px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .form-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .notice {
+      padding:12px 14px; border-radius:var(--r); background:var(--surface2); border:1px solid var(--border);
+      color:var(--text2); font-size:12px; font-weight:700; line-height:1.6;
+    }
+    .notice.warn { background:var(--amber-soft); color:var(--amber); }
+    .notice.good { background:var(--green-soft); color:var(--green); }
+
+    .search-row { display:flex; gap:8px; margin-bottom:12px; }
+    .search-row input { flex:1; }
+    .toast {
+      position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px);
+      background:var(--text); color:#fff; padding:11px 18px; border-radius:999px;
+      font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:.2s;
+      box-shadow:0 10px 30px rgba(0,0,0,.18); z-index:100;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    @media (max-width:920px) {
+      .grid { grid-template-columns:1fr; }
+      .hero { align-items:flex-start; flex-direction:column; }
+      .hero-stats { width:100%; }
+      .stat { flex:1; min-width:0; }
+    }
+    @media (max-width:560px) {
+      .shell { padding:14px 14px 80px; }
+      .hero { padding:22px; }
+      .topbar { align-items:flex-start; flex-direction:column; }
+      .split { grid-template-columns:1fr; }
+      .request-top, .stop-top { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="topbar">
+      <div class="brand"><div class="brand-icon">줄</div>지금줄 운영</div>
+      <div class="top-actions">
+        <a class="btn" href="./index.html">고객 페이지</a>
+        <button class="btn" id="refreshBtn">새로고침</button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <h1>요청을 보고<br>바로 정류장을 등록하세요.</h1>
+        <p>고객이 보낸 정류장명, 버스번호, 위치 설명, 연락처/메모를 확인하고 정류장과 노선을 추가하거나 수정할 수 있어요.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num" id="pendingCount">0</div><div class="stat-label">요청 대기</div></div>
+        <div class="stat"><div class="stat-num" id="stopCount">0</div><div class="stat-label">등록 정류장</div></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <main class="col">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">정류장 추가 요청</div>
+              <div class="card-sub">고객 페이지의 “운영자에게 요청하기”로 저장된 내용입니다.</div>
+            </div>
+          </div>
+          <div class="tabs" id="requestTabs">
+            <button class="tab on" data-filter="pending">대기</button>
+            <button class="tab" data-filter="all">전체</button>
+            <button class="tab" data-filter="approved">승인</button>
+            <button class="tab" data-filter="done">완료</button>
+            <button class="tab" data-filter="rejected">반려</button>
+          </div>
+          <div class="list" id="requestList">
+            <div class="empty">요청을 불러오는 중...</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">등록된 정류장</div>
+              <div class="card-sub">Firestore stops 컬렉션 기준입니다.</div>
+            </div>
+            <button class="btn small" id="newStopBtn">새 정류장</button>
+          </div>
+          <div class="search-row">
+            <input id="stopSearch" placeholder="정류장명, 버스번호 검색" />
+            <button class="btn" id="clearSearchBtn">초기화</button>
+          </div>
+          <div class="list" id="stopList">
+            <div class="empty">정류장을 불러오는 중...</div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="col">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">정류장·버스번호 추가 / 수정</div>
+              <div class="card-sub" id="formMode">새 정류장 등록</div>
+            </div>
+          </div>
+
+          <div class="notice good">
+            이 페이지는 숨겨진 운영 URL로 사용하는 간단한 버전입니다. 요청 확인 → 정류장 등록 → 고객 페이지 반영 흐름만 빠르게 처리할 수 있게 만들었습니다.
+          </div>
+
+          <div class="form" style="margin-top:14px;">
+            <div class="split">
+              <div class="field">
+                <label for="stopId">정류장 ID *</label>
+                <input id="stopId" placeholder="예: my-stop-id" />
+                <div class="help">영문/숫자/하이픈 권장. 자동 생성 가능.</div>
+              </div>
+              <div class="field">
+                <label for="activeSelect">노출 상태</label>
+                <select id="activeSelect">
+                  <option value="true">노출</option>
+                  <option value="false">숨김</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="stopName">정류장명 *</label>
+              <input id="stopName" placeholder="정류장 이름 입력" />
+            </div>
+
+            <div class="field">
+              <label for="routesText">버스번호 / 노선명</label>
+              <textarea id="routesText" placeholder="여러 개면 줄바꿈 또는 쉼표로 입력&#10;예: 1007&#10;M5342"></textarea>
+              <div class="help">정류장 전체 줄만 쓰려면 비워둬도 됩니다.</div>
+            </div>
+
+            <div class="field">
+              <label for="aliasesText">검색 별칭</label>
+              <textarea id="aliasesText" placeholder="검색에 걸릴 다른 이름을 입력&#10;예: 7번출구 앞, 중앙차로"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="adminMemo">운영 메모</label>
+              <textarea id="adminMemo" placeholder="내부 확인용 메모"></textarea>
+            </div>
+
+            <div class="notice" id="linkedRequestBox" hidden></div>
+
+            <div class="form-actions">
+              <button class="btn accent" id="saveStopBtn">정류장 저장</button>
+              <button class="btn green" id="approveRequestBtn" disabled>요청 승인 + 저장</button>
+              <button class="btn" id="resetFormBtn">초기화</button>
+              <button class="btn danger" id="deleteStopBtn" disabled>정류장 삭제</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">운영 안내</div>
+              <div class="card-sub">고객 페이지 반영 방식</div>
+            </div>
+          </div>
+          <div class="notice good">
+            이 페이지에서 저장한 정류장은 stops 컬렉션에 저장됩니다. 함께 제공한 고객 페이지는 stops 컬렉션을 읽도록 수정되어 있어, 저장 후 고객 화면에 바로 반영됩니다.
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBE7q7aS4SFP_yRVCugKujHn_zKFjsF-Yw",
+  authDomain: "wating-cebdf.firebaseapp.com",
+  projectId: "wating-cebdf",
+  storageBucket: "wating-cebdf.firebasestorage.app",
+  messagingSenderId: "512741450963",
+  appId: "1:512741450963:web:53e76879bbb4332e556026",
+  measurementId: "G-98TB8E6GE9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+let requests = [];
+let stops = [];
+let requestFilter = 'pending';
+let selectedRequestId = null;
+let selectedStopId = null;
+
+function esc(v) {
+  return String(v ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;');
+}
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function toMillis(v) {
+  if (typeof v === 'number') return v;
+  if (v && typeof v.toMillis === 'function') return v.toMillis();
+  if (v && typeof v.seconds === 'number') return v.seconds * 1000;
+  return Date.now();
+}
+
+function timeText(ts) {
+  if (!ts) return '-';
+  const d = new Date(toMillis(ts));
+  return d.toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+function slugify(text) {
+  const base = String(text || '')
+    .trim()
+    .toLowerCase()
+    .replace(/정류장|정류소/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^0-9a-z가-힣-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return base || `stop-${Date.now()}`;
+}
+
+function parseList(text) {
+  return String(text || '')
+    .split(/[\n,]/g)
+    .map(v => v.trim())
+    .filter(Boolean)
+    .map(v => v.toUpperCase())
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+}
+
+function parseAliases(text) {
+  return String(text || '')
+    .split(/[\n,]/g)
+    .map(v => v.trim())
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+}
+
+function statusLabel(status) {
+  const s = status || 'pending';
+  return s === 'pending' ? '대기'
+    : s === 'approved' ? '승인'
+    : s === 'done' ? '완료'
+    : s === 'rejected' ? '반려'
+    : s;
+}
+
+function requestById(id) { return requests.find(r => r.id === id); }
+function stopById(id) { return stops.find(s => s.id === id); }
+
+function watchData() {
+  onSnapshot(query(collection(db, 'stopRequests'), orderBy('createdAt', 'desc')), snap => {
+    requests = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderRequests();
+    renderStats();
+  }, err => {
+    console.error(err);
+    $('requestList').innerHTML = '<div class="empty">요청을 읽을 권한이 없습니다.<br>Firestore 규칙을 확인해주세요.</div>';
+  });
+
+  onSnapshot(query(collection(db, 'stops'), orderBy('name')), snap => {
+    stops = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderStops();
+    renderStats();
+  }, err => {
+    console.error(err);
+    $('stopList').innerHTML = '<div class="empty">정류장을 읽을 권한이 없습니다.<br>Firestore 규칙을 확인해주세요.</div>';
+  });
+}
+
+function renderStats() {
+  $('pendingCount').textContent = requests.filter(r => (r.status || 'pending') === 'pending').length;
+  $('stopCount').textContent = stops.length;
+}
+
+function renderRequests() {
+  const list = $('requestList');
+  const filtered = requestFilter === 'all'
+    ? requests
+    : requests.filter(r => (r.status || 'pending') === requestFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">표시할 요청이 없습니다.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const status = r.status || 'pending';
+    return `
+      <div class="request-card ${selectedRequestId === r.id ? 'selected' : ''}" data-id="${esc(r.id)}">
+        <div class="request-top">
+          <div>
+            <div class="request-name">${esc(r.stopName || '이름 없음')}</div>
+            <div class="request-route">${esc(r.route || '버스번호 없음 / 정류장 전체 줄')}</div>
+          </div>
+          <span class="badge ${esc(status)}">${esc(statusLabel(status))}</span>
+        </div>
+        <div class="request-meta">
+          <div><b>위치 설명:</b> ${esc(r.memo || '-')}</div>
+          <div><b>연락처/메모:</b> ${esc(r.contact || '-')}</div>
+          <div><b>요청 시간:</b> ${esc(timeText(r.createdAt))}</div>
+          ${r.linkedStopId ? `<div><b>연결 정류장:</b> ${esc(r.linkedStopId)}</div>` : ''}
+        </div>
+        <div class="request-actions">
+          <button class="btn small primary" data-action="load-request" data-id="${esc(r.id)}">폼에 불러오기</button>
+          <button class="btn small green" data-action="quick-approve" data-id="${esc(r.id)}">바로 승인</button>
+          <button class="btn small" data-action="done-request" data-id="${esc(r.id)}">완료</button>
+          <button class="btn small danger" data-action="reject-request" data-id="${esc(r.id)}">반려</button>
+          <button class="btn small danger" data-action="delete-request" data-id="${esc(r.id)}">삭제</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStops() {
+  const q = $('stopSearch').value.trim().toLowerCase();
+  const filtered = stops.filter(s => {
+    const hay = `${s.name || ''} ${(s.routes || []).join(' ')} ${(s.aliases || []).join(' ')}`.toLowerCase();
+    return !q || hay.includes(q);
+  });
+
+  if (!filtered.length) {
+    $('stopList').innerHTML = '<div class="empty">등록된 정류장이 없습니다.<br>오른쪽 폼에서 새 정류장을 등록하세요.</div>';
+    return;
+  }
+
+  $('stopList').innerHTML = filtered.map(s => {
+    const routes = Array.isArray(s.routes) && s.routes.length ? s.routes.join(', ') : '정류장 전체 줄';
+    const active = s.active !== false;
+    return `
+      <div class="stop-card ${selectedStopId === s.id ? 'selected' : ''}" data-id="${esc(s.id)}">
+        <div class="stop-top">
+          <div>
+            <div class="stop-name">${esc(s.name || s.id)}</div>
+            <div class="stop-routes">${esc(routes)}</div>
+          </div>
+          <span class="badge ${active ? 'approved' : 'rejected'}">${active ? '노출' : '숨김'}</span>
+        </div>
+        <div class="request-meta">
+          <div><b>ID:</b> ${esc(s.id)}</div>
+          <div><b>별칭:</b> ${esc((s.aliases || []).join(', ') || '-')}</div>
+        </div>
+        <div class="stop-actions">
+          <button class="btn small primary" data-action="edit-stop" data-id="${esc(s.id)}">수정</button>
+          <button class="btn small danger" data-action="delete-stop" data-id="${esc(s.id)}">삭제</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function resetForm() {
+  selectedRequestId = null;
+  selectedStopId = null;
+  $('formMode').textContent = '새 정류장 등록';
+  $('stopId').value = '';
+  $('stopId').disabled = false;
+  $('activeSelect').value = 'true';
+  $('stopName').value = '';
+  $('routesText').value = '';
+  $('aliasesText').value = '';
+  $('adminMemo').value = '';
+  $('linkedRequestBox').hidden = true;
+  $('linkedRequestBox').innerHTML = '';
+  $('approveRequestBtn').disabled = true;
+  $('deleteStopBtn').disabled = true;
+  renderRequests();
+  renderStops();
+}
+
+function fillFormFromRequest(id) {
+  const r = requestById(id);
+  if (!r) return;
+  selectedRequestId = id;
+  selectedStopId = null;
+  $('formMode').textContent = '요청 기반 등록';
+  $('stopName').value = r.stopName || '';
+  $('stopId').value = slugify(r.stopName || '');
+  $('stopId').disabled = false;
+  $('routesText').value = r.route && !/전체/.test(r.route) ? r.route : '';
+  $('aliasesText').value = '';
+  $('adminMemo').value = [
+    r.memo ? `위치 설명: ${r.memo}` : '',
+    r.contact ? `연락처/메모: ${r.contact}` : ''
+  ].filter(Boolean).join('\n');
+  $('activeSelect').value = 'true';
+  $('linkedRequestBox').hidden = false;
+  $('linkedRequestBox').innerHTML = `
+    <b>연결된 요청</b><br>
+    정류장명: ${esc(r.stopName || '-')}<br>
+    버스번호/노선명: ${esc(r.route || '-')}<br>
+    위치 설명: ${esc(r.memo || '-')}<br>
+    연락처/메모: ${esc(r.contact || '-')}
+  `;
+  $('approveRequestBtn').disabled = false;
+  $('deleteStopBtn').disabled = true;
+  renderRequests();
+  renderStops();
+}
+
+function fillFormFromStop(id) {
+  const s = stopById(id);
+  if (!s) return;
+  selectedStopId = id;
+  selectedRequestId = null;
+  $('formMode').textContent = '기존 정류장 수정';
+  $('stopId').value = s.id;
+  $('stopId').disabled = true;
+  $('stopName').value = s.name || '';
+  $('routesText').value = (s.routes || []).join('\n');
+  $('aliasesText').value = (s.aliases || []).join('\n');
+  $('adminMemo').value = s.adminMemo || '';
+  $('activeSelect').value = String(s.active !== false);
+  $('linkedRequestBox').hidden = true;
+  $('approveRequestBtn').disabled = true;
+  $('deleteStopBtn').disabled = false;
+  renderRequests();
+  renderStops();
+}
+
+function getFormStopData() {
+  const name = $('stopName').value.trim();
+  const rawId = $('stopId').value.trim() || slugify(name);
+  const id = slugify(rawId);
+  const routes = parseList($('routesText').value);
+  const aliases = parseAliases($('aliasesText').value);
+  const active = $('activeSelect').value === 'true';
+  const adminMemo = $('adminMemo').value.trim();
+
+  if (!name) throw new Error('정류장명을 입력해주세요');
+  if (!id) throw new Error('정류장 ID를 입력해주세요');
+
+  return {
+    id,
+    data: {
+      id,
+      name,
+      routes,
+      aliases,
+      active,
+      adminMemo,
+      updatedAt: serverTimestamp(),
+      updatedAtMs: Date.now(),
+      source: 'admin'
+    }
+  };
+}
+
+async function saveStopOnly() {
+  try {
+    const { id, data } = getFormStopData();
+    const exists = stopById(id);
+    await setDoc(doc(db, 'stops', id), {
+      ...data,
+      createdAt: exists?.createdAt || serverTimestamp(),
+      createdAtMs: exists?.createdAtMs || Date.now()
+    }, { merge:true });
+    selectedStopId = id;
+    selectedRequestId = null;
+    toast('정류장을 저장했어요');
+    fillFormFromStop(id);
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '저장 실패');
+  }
+}
+
+async function approveSelectedRequest() {
+  if (!selectedRequestId) return toast('먼저 요청을 불러오세요');
+  try {
+    const { id, data } = getFormStopData();
+    const exists = stopById(id);
+    await setDoc(doc(db, 'stops', id), {
+      ...data,
+      createdAt: exists?.createdAt || serverTimestamp(),
+      createdAtMs: exists?.createdAtMs || Date.now(),
+      requestId: selectedRequestId
+    }, { merge:true });
+
+    await updateDoc(doc(db, 'stopRequests', selectedRequestId), {
+      status: 'approved',
+      linkedStopId: id,
+      reviewedAt: serverTimestamp(),
+      reviewedAtMs: Date.now()
+    });
+
+    selectedStopId = id;
+    selectedRequestId = null;
+    toast('요청을 승인하고 정류장을 저장했어요');
+    fillFormFromStop(id);
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '승인 실패');
+  }
+}
+
+async function quickApproveRequest(id) {
+  fillFormFromRequest(id);
+  await approveSelectedRequest();
+}
+
+async function updateRequestStatus(id, status) {
+  try {
+    await updateDoc(doc(db, 'stopRequests', id), {
+      status,
+      reviewedAt: serverTimestamp(),
+      reviewedAtMs: Date.now()
+    });
+    if (selectedRequestId === id) resetForm();
+    toast(`요청을 ${statusLabel(status)} 처리했어요`);
+  } catch (e) {
+    console.error(e);
+    toast('요청 상태 변경 실패');
+  }
+}
+
+async function deleteRequest(id) {
+  if (!confirm('이 요청을 삭제할까요?')) return;
+  try {
+    await deleteDoc(doc(db, 'stopRequests', id));
+    if (selectedRequestId === id) resetForm();
+    toast('요청을 삭제했어요');
+  } catch (e) {
+    console.error(e);
+    toast('요청 삭제 실패');
+  }
+}
+
+async function deleteStop(id) {
+  if (!confirm('이 정류장을 삭제할까요? 고객 페이지에서 더 이상 선택되지 않을 수 있어요.')) return;
+  try {
+    await deleteDoc(doc(db, 'stops', id));
+    if (selectedStopId === id) resetForm();
+    toast('정류장을 삭제했어요');
+  } catch (e) {
+    console.error(e);
+    toast('정류장 삭제 실패');
+  }
+}
+
+$('requestTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  requestFilter = btn.dataset.filter;
+  document.querySelectorAll('#requestTabs .tab').forEach(b => b.classList.toggle('on', b === btn));
+  renderRequests();
+});
+
+$('requestList').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if (action === 'load-request') fillFormFromRequest(id);
+  if (action === 'quick-approve') quickApproveRequest(id);
+  if (action === 'done-request') updateRequestStatus(id, 'done');
+  if (action === 'reject-request') updateRequestStatus(id, 'rejected');
+  if (action === 'delete-request') deleteRequest(id);
+});
+
+$('stopList').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if (action === 'edit-stop') fillFormFromStop(id);
+  if (action === 'delete-stop') deleteStop(id);
+});
+
+$('stopName').addEventListener('input', () => {
+  if (!selectedStopId && !$('stopId').value.trim()) {
+    $('stopId').value = slugify($('stopName').value);
+  }
+});
+
+$('saveStopBtn').addEventListener('click', saveStopOnly);
+$('approveRequestBtn').addEventListener('click', approveSelectedRequest);
+$('resetFormBtn').addEventListener('click', resetForm);
+$('newStopBtn').addEventListener('click', resetForm);
+$('deleteStopBtn').addEventListener('click', () => {
+  const id = selectedStopId || $('stopId').value.trim();
+  if (id) deleteStop(id);
+});
+$('stopSearch').addEventListener('input', renderStops);
+$('clearSearchBtn').addEventListener('click', () => {
+  $('stopSearch').value = '';
+  renderStops();
+});
+$('refreshBtn').addEventListener('click', () => location.reload());
+
+watchData();
+</script>
+</body>
+</html>
