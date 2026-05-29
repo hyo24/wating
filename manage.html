@@ -3,295 +3,250 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>지금줄 운영 페이지 — 정류장 요청 관리</title>
+  <title>지금줄 관리자 — 장소·줄 관리</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:#f7f7f5;
-      --surface:#fff;
-      --surface2:#f2f1ee;
-      --border:rgba(0,0,0,.08);
-      --border2:rgba(0,0,0,.14);
-      --text:#111010;
-      --text2:#5a5855;
-      --text3:#9e9b96;
-      --accent:#ff3d2e;
-      --accent-soft:#fff0ef;
-      --accent-text:#c01c10;
-      --green:#1a7c4a;
-      --green-soft:#eaf5ee;
-      --amber:#8a5a00;
-      --amber-soft:#fdf3e3;
-      --blue:#2255cc;
-      --blue-soft:#eef4ff;
-      --r:16px;
-      --r-lg:24px;
-      --r-xl:32px;
+    :root{
+      --bg:#f7f7f5;--surface:#fff;--surface2:#f1f0ec;--surface3:#ebe9e4;
+      --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+      --text:#111010;--text2:#5d5a55;--text3:#9c9891;
+      --accent:#ff3d2e;--accent-soft:#fff0ef;--accent-text:#c01c10;
+      --green:#187848;--green-soft:#eaf5ee;--amber:#8a5a00;--amber-soft:#fdf3e3;
+      --blue:#2458d3;--blue-soft:#eef4ff;--red:#c01c10;--red-soft:#ffefef;
+      --r:16px;--r-lg:24px;--r-xl:32px;--shadow:0 18px 48px rgba(0,0,0,.12)
     }
-    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body {
-      font-family:'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      min-height:100vh;
-    }
-    button, input, textarea, select { font:inherit; }
-    button { border:0; background:none; cursor:pointer; }
-    .shell { max-width:1220px; margin:0 auto; padding:18px 20px 80px; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
-    .brand { display:flex; align-items:center; gap:10px; font-size:22px; font-weight:900; letter-spacing:-.06em; }
-    .brand-icon {
-      width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff;
-      display:grid; place-items:center; transform:rotate(-3deg); font-size:16px; font-weight:900;
-    }
-    .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .hero {
-      background:var(--text); color:#fff; border-radius:var(--r-xl);
-      padding:26px 30px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:flex-end; gap:20px;
-      overflow:hidden; position:relative;
-    }
-    .hero:before {
-      content:""; position:absolute; width:240px; height:240px; border-radius:50%;
-      background:rgba(255,61,46,.18); right:-60px; top:-90px;
-    }
-    .hero h1 { font-size:clamp(26px,5vw,46px); line-height:1.05; letter-spacing:-.07em; font-weight:900; position:relative; }
-    .hero p { margin-top:10px; color:rgba(255,255,255,.62); font-size:14px; line-height:1.6; position:relative; word-break:keep-all; }
-    .hero-stats { display:flex; gap:10px; position:relative; z-index:1; }
-    .stat {
-      min-width:96px; padding:12px 14px; border-radius:18px; background:rgba(255,255,255,.09);
-      border:1px solid rgba(255,255,255,.1);
-    }
-    .stat-num { font-family:'DM Mono', monospace; font-size:28px; color:#fff; }
-    .stat-label { font-size:11px; color:rgba(255,255,255,.52); font-weight:700; margin-top:2px; }
-
-    .grid { display:grid; grid-template-columns: 1fr 420px; gap:18px; align-items:start; }
-    .col { display:grid; gap:14px; }
-    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; }
-    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
-    .card-title { font-size:16px; font-weight:900; letter-spacing:-.04em; }
-    .card-sub { font-size:12px; color:var(--text3); font-weight:700; margin-top:3px; line-height:1.5; }
-
-    .btn {
-      height:40px; padding:0 14px; border-radius:999px; border:1.5px solid var(--border2);
-      background:var(--surface); color:var(--text); font-size:12px; font-weight:900;
-      display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap;
-      transition:.12s transform, .12s background;
-    }
-    .btn:hover { background:var(--surface2); transform:translateY(-1px); }
-    .btn.primary { background:var(--text); color:#fff; border-color:var(--text); }
-    .btn.accent { background:var(--accent); color:#fff; border-color:var(--accent); }
-    .btn.green { background:var(--green); color:#fff; border-color:var(--green); }
-    .btn.danger { background:#fff0ef; color:var(--accent-text); border-color:rgba(255,61,46,.2); }
-    .btn.small { height:32px; padding:0 10px; font-size:11px; }
-
-    .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
-    .tab {
-      height:34px; padding:0 12px; border-radius:999px; background:var(--surface2);
-      color:var(--text2); font-size:12px; font-weight:900; border:1px solid var(--border);
-    }
-    .tab.on { background:var(--text); color:#fff; border-color:var(--text); }
-
-    .list { display:grid; gap:10px; }
-    .empty {
-      padding:28px 16px; text-align:center; border:1.5px dashed var(--border2); border-radius:var(--r-lg);
-      color:var(--text3); font-size:13px; font-weight:700; line-height:1.6;
-    }
-    .request-card, .stop-card {
-      border:1px solid var(--border); background:var(--surface); border-radius:var(--r); padding:14px;
-    }
-    .request-card.selected, .stop-card.selected { border-color:var(--accent); background:var(--accent-soft); }
-    .request-top, .stop-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .request-name, .stop-name { font-size:15px; font-weight:900; letter-spacing:-.04em; line-height:1.3; }
-    .request-route, .stop-routes { font-size:12px; color:var(--text2); font-weight:800; margin-top:5px; }
-    .request-meta { margin-top:10px; display:grid; gap:5px; font-size:12px; color:var(--text2); font-weight:600; line-height:1.5; }
-    .request-actions, .stop-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-    .badge {
-      flex:0 0 auto; padding:5px 8px; border-radius:999px; font-size:11px; font-weight:900;
-      background:var(--surface2); color:var(--text2);
-    }
-    .badge.pending { background:var(--amber-soft); color:var(--amber); }
-    .badge.approved { background:var(--green-soft); color:var(--green); }
-    .badge.rejected { background:#ffefef; color:var(--accent-text); }
-    .badge.done { background:var(--blue-soft); color:var(--blue); }
-
-    .form { display:grid; gap:12px; }
-    .field label { display:block; font-size:12px; color:var(--text2); font-weight:900; margin-bottom:6px; }
-    input, textarea, select {
-      width:100%; border:1.5px solid var(--border2); border-radius:var(--r);
-      background:var(--surface); color:var(--text); outline:0; font-size:13px; font-weight:700;
-    }
-    input, select { height:44px; padding:0 12px; }
-    textarea { min-height:84px; padding:12px; resize:vertical; line-height:1.5; }
-    input:focus, textarea:focus, select:focus { border-color:var(--accent); }
-    .help { font-size:11px; color:var(--text3); font-weight:700; line-height:1.5; margin-top:5px; }
-    .split { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .form-actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .notice {
-      padding:12px 14px; border-radius:var(--r); background:var(--surface2); border:1px solid var(--border);
-      color:var(--text2); font-size:12px; font-weight:700; line-height:1.6;
-    }
-    .notice.warn { background:var(--amber-soft); color:var(--amber); }
-    .notice.good { background:var(--green-soft); color:var(--green); }
-
-    .search-row { display:flex; gap:8px; margin-bottom:12px; }
-    .search-row input { flex:1; }
-    .toast {
-      position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px);
-      background:var(--text); color:#fff; padding:11px 18px; border-radius:999px;
-      font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:.2s;
-      box-shadow:0 10px 30px rgba(0,0,0,.18); z-index:100;
-    }
-    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-    @media (max-width:920px) {
-      .grid { grid-template-columns:1fr; }
-      .hero { align-items:flex-start; flex-direction:column; }
-      .hero-stats { width:100%; }
-      .stat { flex:1; min-width:0; }
-    }
-    @media (max-width:560px) {
-      .shell { padding:14px 14px 80px; }
-      .hero { padding:22px; }
-      .topbar { align-items:flex-start; flex-direction:column; }
-      .split { grid-template-columns:1fr; }
-      .request-top, .stop-top { flex-direction:column; }
-    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+    body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    button,input,select,textarea{font:inherit} button{cursor:pointer;border:0;background:none;color:inherit} a{color:inherit;text-decoration:none}
+    .shell{max-width:1180px;margin:0 auto;padding:0 20px 100px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 0 16px;gap:12px}
+    .wordmark{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;letter-spacing:-.06em;white-space:nowrap}
+    .wordmark-icon{width:36px;height:36px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:900;letter-spacing:-.05em;transform:rotate(-3deg)}
+    .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .ghost-btn{height:36px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 14px;border-radius:999px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:13px;font-weight:800;white-space:nowrap;transition:.15s}
+    .ghost-btn:hover{background:var(--surface2)}
+    .hero{position:relative;overflow:hidden;background:var(--text);color:#fff;border-radius:var(--r-xl);padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+    .hero:before{content:'';position:absolute;width:260px;height:260px;border-radius:999px;background:rgba(255,61,46,.18);right:-70px;top:-100px}
+    .hero-main{position:relative;z-index:1}.hero-label{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.82);font-size:12px;font-weight:800;padding:6px 11px;border-radius:999px;margin-bottom:13px}
+    .live-dot{width:7px;height:7px;border-radius:999px;background:#4ade80;animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+    .hero-h{font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:-.075em;line-height:1.04}.hero-sub{max-width:630px;margin-top:12px;color:rgba(255,255,255,.64);font-size:14px;line-height:1.65;font-weight:600;word-break:keep-all}
+    .hero-right{position:relative;z-index:1;display:grid;gap:8px;min-width:230px}.status-pill{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px}.status-label{font-size:11px;color:rgba(255,255,255,.55);font-weight:900}.status-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#fff}
+    .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}.metric-num{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;letter-spacing:-.05em}.metric-label{font-size:12px;color:var(--text3);font-weight:900;margin-top:4px;line-height:1.35}
+    .layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);gap:18px;margin-top:18px;align-items:start}.stack{display:grid;gap:16px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.card-title{font-size:17px;font-weight:900;letter-spacing:-.045em}.card-sub{font-size:12px;color:var(--text3);font-weight:800;margin-top:3px;line-height:1.45;word-break:keep-all}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.tab-btn{height:40px;padding:0 15px;border-radius:999px;border:1.5px solid var(--border2);background:var(--surface);font-size:13px;font-weight:900;color:var(--text2)}.tab-btn.on{background:var(--text);color:#fff;border-color:var(--text)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field-label{font-size:12px;font-weight:900;color:var(--text2)}.field-help{font-size:11px;color:var(--text3);font-weight:700;line-height:1.45;word-break:keep-all}
+    input[type=text],input[type=password],select,textarea{width:100%;border:1.5px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);font-size:13px;font-weight:700;outline:0;transition:.15s}input[type=text],input[type=password],select{height:46px;padding:0 13px}textarea{min-height:96px;padding:12px 14px;resize:vertical;line-height:1.55}input:focus,select:focus,textarea:focus{border-color:var(--accent)}input::placeholder,textarea::placeholder{color:var(--text3)}
+    select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9b96' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}.check-row{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:var(--text2);line-height:1.4}.check-row input{width:18px;height:18px;accent-color:var(--accent)}
+    .action-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.btn{height:44px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--surface);font-size:13px;font-weight:900;letter-spacing:-.02em;color:var(--text);padding:0 15px;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:5px}.btn:hover{background:var(--surface2);transform:translateY(-1px)}.btn.primary{background:var(--text);color:#fff;border-color:var(--text)}.btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.green{background:var(--green);color:#fff;border-color:var(--green)}.btn.red{background:var(--red);color:#fff;border-color:var(--red)}.btn.small{height:32px;padding:0 10px;border-radius:10px;font-size:11px}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+    .list{display:grid;gap:8px}.item{border:1px solid var(--border);background:var(--surface);border-radius:var(--r);padding:13px}.item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.item-title{font-size:14px;font-weight:900;letter-spacing:-.03em}.item-meta{font-size:11px;color:var(--text3);font-weight:800;margin-top:3px;line-height:1.45}.item-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:var(--surface2);color:var(--text2);font-size:11px;font-weight:900;padding:5px 8px;max-width:100%;word-break:break-all}.chip.green{background:var(--green-soft);color:var(--green)}.chip.amber{background:var(--amber-soft);color:var(--amber)}.chip.blue{background:var(--blue-soft);color:var(--blue)}.chip.red{background:var(--red-soft);color:var(--red)}
+    .empty{padding:24px;text-align:center;font-size:13px;color:var(--text3);font-weight:800;border:1.5px dashed var(--border2);border-radius:var(--r-lg);line-height:1.6}.search-row{display:flex;gap:8px;margin-bottom:12px}.search-row input{flex:1}.admin-toolbar{display:grid;gap:10px;margin-bottom:12px}.smart-search{position:relative}.smart-search input{padding-left:38px;padding-right:40px}.smart-search:before{content:'⌕';position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:17px;color:var(--text3);font-weight:900;z-index:1}.clear-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:999px;background:var(--surface2);color:var(--text3);font-size:12px;font-weight:900;display:none;place-items:center}.clear-x.show{display:grid}.mini-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.list-meta{font-size:11px;color:var(--text3);font-weight:900;line-height:1.45}.pill-btn{height:32px;padding:0 11px;border-radius:999px;border:1.5px solid var(--border2);background:var(--surface);font-size:11px;font-weight:900;color:var(--text2);display:inline-flex;align-items:center;justify-content:center}.pill-btn.on{background:var(--text);border-color:var(--text);color:#fff}.filter-row{display:flex;gap:6px;flex-wrap:wrap}.focus-card{border-color:rgba(255,61,46,.28);box-shadow:0 0 0 4px rgba(255,61,46,.06)}.section-anchor{scroll-margin-top:18px}.divider{height:1px;background:var(--border);margin:16px 0}.muted{color:var(--text3)}.mono{font-family:'DM Mono',monospace}
+    .report-table{width:100%;border-collapse:collapse}.report-table th,.report-table td{padding:10px 8px;border-bottom:1px solid var(--border);font-size:12px;text-align:left;vertical-align:top}.report-table th{color:var(--text3);font-weight:900}.report-table td{font-weight:800;color:var(--text2)}.report-table .num{font-family:'DM Mono',monospace;color:var(--text);font-size:16px;font-weight:500}.table-wrap{overflow:auto}
+    .toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%) translateY(12px);background:var(--text);color:#fff;padding:11px 18px;border-radius:999px;font-size:13px;font-weight:900;white-space:nowrap;opacity:0;pointer-events:none;z-index:99;transition:.2s;box-shadow:0 8px 24px rgba(0,0,0,.2)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .lock{position:fixed;inset:0;background:var(--bg);z-index:200;display:grid;place-items:center;padding:20px}.lock[hidden]{display:none}.lock-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:24px;box-shadow:var(--shadow)}.lock-mark{width:44px;height:44px;border-radius:14px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:900;margin-bottom:14px}.lock-title{font-size:22px;font-weight:900;letter-spacing:-.055em}.lock-sub{font-size:13px;color:var(--text3);font-weight:700;line-height:1.6;margin-top:8px;word-break:keep-all}
+    @media(max-width:920px){.layout{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(2,1fr)}.hero{display:block}.hero-right{margin-top:18px;min-width:0}.status-pill{max-width:360px}}
+    @media(max-width:560px){.shell{padding-left:16px;padding-right:16px}.hero{padding:23px 22px}.hero-h{font-size:34px}.form-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}.topbar{align-items:flex-start}.topbar-actions .ghost-btn:nth-child(2){display:none}.item-top{display:grid}.item-actions{justify-content:flex-start}.search-row{display:grid}.btn{width:100%}.btn.small{width:auto}}
   </style>
 </head>
 <body>
-  <div class="shell">
-    <nav class="topbar">
-      <div class="brand"><div class="brand-icon">줄</div>지금줄 운영</div>
-      <div class="top-actions">
-        <a class="btn" href="./index.html">고객 페이지</a>
-        <button class="btn" id="refreshBtn">새로고침</button>
+  <div class="lock" id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-mark">줄</div>
+      <div class="lock-title">지금줄 관리자</div>
+      <p class="lock-sub">장소와 세부 줄을 추가하고, 사용자가 보낸 요청을 검토하는 화면입니다.</p>
+      <div style="height:14px"></div>
+      <div class="field">
+        <label class="field-label" for="adminCodeInput">관리자 코드</label>
+        <input type="password" id="adminCodeInput" placeholder="관리자 코드 입력" autocomplete="off" />
       </div>
-    </nav>
-
-    <section class="hero">
-      <div>
-        <h1>요청을 보고<br>바로 정류장을 등록하세요.</h1>
-        <p>고객이 보낸 정류장명, 버스번호, 위치 설명, 연락처/메모를 확인하고 정류장과 노선을 추가하거나 수정할 수 있어요.</p>
+      <div class="action-row">
+        <button class="btn accent" id="unlockBtn">관리자 화면 열기</button>
       </div>
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-num" id="pendingCount">0</div><div class="stat-label">요청 대기</div></div>
-        <div class="stat"><div class="stat-num" id="stopCount">0</div><div class="stat-label">등록 정류장</div></div>
-      </div>
-    </section>
-
-    <div class="grid">
-      <main class="col">
-        <section class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">정류장 추가 요청</div>
-              <div class="card-sub">고객 페이지의 “운영자에게 요청하기”로 저장된 내용입니다.</div>
-            </div>
-          </div>
-          <div class="tabs" id="requestTabs">
-            <button class="tab on" data-filter="pending">대기</button>
-            <button class="tab" data-filter="all">전체</button>
-            <button class="tab" data-filter="approved">승인</button>
-            <button class="tab" data-filter="done">완료</button>
-            <button class="tab" data-filter="rejected">반려</button>
-          </div>
-          <div class="list" id="requestList">
-            <div class="empty">요청을 불러오는 중...</div>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">등록된 정류장</div>
-              <div class="card-sub">Firestore stops 컬렉션 기준입니다.</div>
-            </div>
-            <button class="btn small" id="newStopBtn">새 정류장</button>
-          </div>
-          <div class="search-row">
-            <input id="stopSearch" placeholder="정류장명, 버스번호 검색" />
-            <button class="btn" id="clearSearchBtn">초기화</button>
-          </div>
-          <div class="list" id="stopList">
-            <div class="empty">정류장을 불러오는 중...</div>
-          </div>
-        </section>
-      </main>
-
-      <aside class="col">
-        <section class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">정류장·버스번호 추가 / 수정</div>
-              <div class="card-sub" id="formMode">새 정류장 등록</div>
-            </div>
-          </div>
-
-          <div class="notice good">
-            이 페이지는 숨겨진 운영 URL로 사용하는 간단한 버전입니다. 요청 확인 → 정류장 등록 → 고객 페이지 반영 흐름만 빠르게 처리할 수 있게 만들었습니다.
-          </div>
-
-          <div class="form" style="margin-top:14px;">
-            <div class="split">
-              <div class="field">
-                <label for="stopId">정류장 ID *</label>
-                <input id="stopId" placeholder="예: my-stop-id" />
-                <div class="help">영문/숫자/하이픈 권장. 자동 생성 가능.</div>
-              </div>
-              <div class="field">
-                <label for="activeSelect">노출 상태</label>
-                <select id="activeSelect">
-                  <option value="true">노출</option>
-                  <option value="false">숨김</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="stopName">정류장명 *</label>
-              <input id="stopName" placeholder="정류장 이름 입력" />
-            </div>
-
-            <div class="field">
-              <label for="routesText">버스번호 / 노선명</label>
-              <textarea id="routesText" placeholder="여러 개면 줄바꿈 또는 쉼표로 입력&#10;예: 1007&#10;M5342"></textarea>
-              <div class="help">정류장 전체 줄만 쓰려면 비워둬도 됩니다.</div>
-            </div>
-
-            <div class="field">
-              <label for="aliasesText">검색 별칭</label>
-              <textarea id="aliasesText" placeholder="검색에 걸릴 다른 이름을 입력&#10;예: 7번출구 앞, 중앙차로"></textarea>
-            </div>
-
-            <div class="field">
-              <label for="adminMemo">운영 메모</label>
-              <textarea id="adminMemo" placeholder="내부 확인용 메모"></textarea>
-            </div>
-
-            <div class="notice" id="linkedRequestBox" hidden></div>
-
-            <div class="form-actions">
-              <button class="btn accent" id="saveStopBtn">정류장 저장</button>
-              <button class="btn green" id="approveRequestBtn" disabled>요청 승인 + 저장</button>
-              <button class="btn" id="resetFormBtn">초기화</button>
-              <button class="btn danger" id="deleteStopBtn" disabled>정류장 삭제</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">운영 안내</div>
-              <div class="card-sub">고객 페이지 반영 방식</div>
-            </div>
-          </div>
-          <div class="notice good">
-            이 페이지에서 저장한 정류장은 stops 컬렉션에 저장됩니다. 함께 제공한 고객 페이지는 stops 컬렉션을 읽도록 수정되어 있어, 저장 후 고객 화면에 바로 반영됩니다.
-          </div>
-        </section>
-      </aside>
     </div>
+  </div>
+
+  <div class="shell">
+    <header>
+      <nav class="topbar">
+        <div class="wordmark"><div class="wordmark-icon">줄</div>지금줄 관리자</div>
+        <div class="topbar-actions">
+          <button class="ghost-btn" id="openCustomerBtn">고객 화면 열기</button>
+          <button class="ghost-btn" id="refreshBtn">새로고침</button>
+          <button class="ghost-btn" id="logoutBtn">잠금</button>
+        </div>
+      </nav>
+      <section class="hero">
+        <div class="hero-main">
+          <div class="hero-label"><span class="live-dot"></span> 장소 기반 줄·대기 현황 운영</div>
+          <h1 class="hero-h">장소를 등록하고,<br>요청을 바로 반영하세요.</h1>
+          <p class="hero-sub">버스정류장 느낌에 묶이지 않도록 장소와 세부 줄 기준으로 관리합니다. 예: 잠실역 광역버스 정류장 → 1007번 줄, 행사장 A구역 → 입장 줄/화장실 줄/푸드트럭 줄.</p>
+        </div>
+        <div class="hero-right">
+          <div class="status-pill"><span class="status-label">Firebase</span><span class="status-value" id="firebaseStatus">—</span></div>
+          <div class="status-pill"><span class="status-label">최근 동기화</span><span class="status-value" id="syncStatus">—</span></div>
+        </div>
+      </section>
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-num" id="metricPlaces">0</div><div class="metric-label">등록 장소</div></div>
+        <div class="metric"><div class="metric-num" id="metricLines">0</div><div class="metric-label">세부 줄</div></div>
+        <div class="metric"><div class="metric-num" id="metricRequests">0</div><div class="metric-label">대기 요청</div></div>
+        <div class="metric"><div class="metric-num" id="metricReports">0</div><div class="metric-label">최근 15분 제보</div></div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn on" data-tab="places">장소 관리</button>
+        <button class="tab-btn" data-tab="requests">요청 검토</button>
+        <button class="tab-btn" data-tab="reports">제보 현황</button>
+      </div>
+    </header>
+
+    <main class="layout section-anchor" id="tabPlaces">
+      <section class="stack">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">장소 추가 / 수정</div>
+              <div class="card-sub">장소 하나 아래에 여러 개의 세부 줄을 등록할 수 있어요.</div>
+            </div>
+            <button class="ghost-btn" id="newPlaceBtn">새로 작성</button>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label" for="placeId">장소 ID</label>
+              <input type="text" id="placeId" placeholder="비우면 자동 생성" />
+              <div class="field-help">URL과 문서 ID에 쓰입니다. 예: jamsil-bus</div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="placeName">장소명 *</label>
+              <input type="text" id="placeName" placeholder="예: 잠실역 광역버스 정류장" />
+            </div>
+            <div class="field full">
+              <label class="field-label" for="placeAliases">검색어 / 별칭</label>
+              <textarea id="placeAliases" placeholder="예: 잠실역, 잠실 광역버스, 잠실 버스&#10;쉼표 또는 줄바꿈으로 구분"></textarea>
+              <div class="field-help">사용자가 다르게 검색해도 찾을 수 있게 하는 키워드입니다.</div>
+            </div>
+            <div class="field full">
+              <label class="field-label" for="placeLines">세부 줄</label>
+              <textarea id="placeLines" placeholder="예: 장소 전체 줄&#10;1007번 줄&#10;M5342번 줄&#10;입장 줄&#10;화장실 줄"></textarea>
+              <div class="field-help">쉼표 또는 줄바꿈으로 구분하세요. 비워도 고객 화면에는 '장소 전체 줄'이 기본으로 제공됩니다.</div>
+            </div>
+            <div class="field full">
+              <label class="check-row"><input type="checkbox" id="placeActive" checked /> 고객 화면에 노출</label>
+              <label class="check-row"><input type="checkbox" id="syncLegacyStops" /> 기존 stops 컬렉션에도 같이 저장</label>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn accent" id="savePlaceBtn">저장하기</button>
+            <button class="btn" id="duplicatePlaceBtn">복사해서 새 ID</button>
+            <button class="btn red" id="deactivatePlaceBtn">비활성화</button>
+          </div>
+        </div>
+      </section>
+      <aside class="stack">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">등록된 장소</div>
+              <div class="card-sub">선택하면 왼쪽 폼에서 수정할 수 있어요.</div>
+            </div>
+          </div>
+          <div class="admin-toolbar">
+            <div class="smart-search">
+              <input type="text" id="placeSearch" placeholder="장소명, 검색어, 세부 줄로 빠르게 검색" autocomplete="off" />
+              <button class="clear-x" id="clearPlaceSearchBtn" type="button">✕</button>
+            </div>
+            <div class="mini-actions">
+              <div class="list-meta" id="placeListMeta">최근 등록/수정 5개만 표시</div>
+              <div class="filter-row">
+                <button class="pill-btn" id="togglePlaceAllBtn" type="button">전체 보기</button>
+                <button class="pill-btn" id="downloadPlacesBtn" type="button">CSV</button>
+              </div>
+            </div>
+          </div>
+          <div class="list" id="placeList"></div>
+        </div>
+      </aside>
+    </main>
+
+    <main class="layout section-anchor" id="tabRequests" hidden>
+      <section class="stack">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">사용자 요청</div>
+              <div class="card-sub">중복 요청은 하나로 묶고, 최근 요청 위주로 보여줍니다.</div>
+            </div>
+          </div>
+          <div class="admin-toolbar">
+            <div class="smart-search">
+              <input type="text" id="requestSearch" placeholder="장소명, 세부 줄, 위치 메모 검색" autocomplete="off" />
+              <button class="clear-x" id="clearRequestSearchBtn" type="button">✕</button>
+            </div>
+            <div class="mini-actions">
+              <div class="list-meta" id="requestListMeta">대기 요청 최근 5개</div>
+              <div class="filter-row">
+                <button class="pill-btn on" id="onlyPendingBtn" type="button">대기만</button>
+                <button class="pill-btn" id="toggleRequestAllBtn" type="button">전체 보기</button>
+              </div>
+            </div>
+          </div>
+          <div class="list" id="requestList"></div>
+        </div>
+      </section>
+      <aside class="stack">
+        <div class="card">
+          <div class="card-title">처리 방법</div>
+          <div class="divider"></div>
+          <div class="chip-row">
+            <span class="chip blue">폼으로 가져오기</span>
+            <span class="chip green">신규 장소 생성</span>
+            <span class="chip amber">처리완료</span>
+          </div>
+          <p class="card-sub" style="margin-top:12px;">중복 장소가 있을 수 있으니, 먼저 '폼으로 가져오기'로 내용을 확인한 뒤 기존 장소에 세부 줄만 추가하는 방식도 추천합니다.</p>
+        </div>
+      </aside>
+    </main>
+
+    <main class="layout section-anchor" id="tabReports" hidden>
+      <section class="stack">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">장소별 제보 요약</div>
+              <div class="card-sub">기본은 최근 활동 5개만 보여주고, 필요할 때 전체를 확인합니다.</div>
+            </div>
+          </div>
+          <div class="admin-toolbar">
+            <div class="mini-actions">
+              <div class="list-meta" id="reportSummaryMeta">최근 활동 5개</div>
+              <div class="filter-row">
+                <button class="pill-btn on" data-report-mode="recent" type="button">최근순</button>
+                <button class="pill-btn" data-report-mode="top15" type="button">15분 TOP</button>
+                <button class="pill-btn" data-report-mode="top30" type="button">30분 TOP</button>
+                <button class="pill-btn" id="toggleReportAllBtn" type="button">전체 보기</button>
+                <button class="pill-btn" id="downloadReportsBtn" type="button">CSV</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="report-table">
+              <thead><tr><th>장소</th><th>세부 줄</th><th>15분</th><th>30분</th><th>전체</th><th>최근</th></tr></thead>
+              <tbody id="reportSummaryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <aside class="stack">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">최근 제보</div>
+              <div class="card-sub">가장 최근 8건</div>
+            </div>
+          </div>
+          <div class="list" id="recentReportList"></div>
+        </div>
+      </aside>
+    </main>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -307,10 +262,17 @@ import {
   deleteDoc,
   query,
   orderBy,
+  limit,
   onSnapshot,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+/*
+  지금줄 관리자 v6
+  - 고객용 index.html과 맞춘 구조입니다.
+  - 기본 컬렉션: places, placeRequests, reports
+  - 레거시 호환: stops, stopRequests 읽기 / 선택 시 stops 저장 가능
+*/
 const firebaseConfig = {
   apiKey: "AIzaSyBE7q7aS4SFP_yRVCugKujHn_zKFjsF-Yw",
   authDomain: "wating-cebdf.firebaseapp.com",
@@ -321,428 +283,645 @@ const firebaseConfig = {
   measurementId: "G-98TB8E6GE9"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const ADMIN_CODE = "hyjo93"; // 실제 사용 전 원하는 값으로 변경하세요. 실제 보안은 Firebase Auth/Rules가 필요합니다.
+const PLACE_LEVEL = "__PLACE_LEVEL__";
+const LEGACY_PLACE_LEVEL = "__STOP_LEVEL__";
+const ACTIVE_MINUTES = 15;
+const REPORT_LIMIT = 800;
+const REQUEST_LIMIT = 200;
+const SESSION_KEY = "jigeumjul_admin_unlocked_v4";
 
 const $ = id => document.getElementById(id);
-let requests = [];
-let stops = [];
-let requestFilter = 'pending';
-let selectedRequestId = null;
-let selectedStopId = null;
+const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith("YOUR_"));
+let app = null;
+let db = null;
+let placesFromNew = [];
+let placesFromLegacy = [];
+let placesCache = [];
+let requestsCache = [];
+let reportsCache = [];
+let currentEditSource = "places";
+let showPendingOnly = true;
+let showAllPlaces = false;
+let showAllRequests = false;
+let showAllReportRows = false;
+let reportSummaryMode = "recent";
+let toastTimer = null;
 
-function esc(v) {
-  return String(v ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;');
+const RANGES = {
+  "0-5":"0~5명",
+  "6-15":"6~15명",
+  "16-30":"16~30명",
+  "31-50":"31~50명",
+  "50+":"50명+",
+  "unknown":"못 셌어요"
+};
+
+function now(){ return Date.now(); }
+function esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+function toMillis(v){ if(typeof v === "number") return v; if(v && typeof v.toMillis === "function") return v.toMillis(); if(v && typeof v.seconds === "number") return v.seconds * 1000; return now(); }
+function timeAgo(ts){ const d=Math.max(0,now()-ts); const m=Math.floor(d/60000); if(m<1) return "방금 전"; if(m<60) return `${m}분 전`; const h=Math.floor(m/60); return h<24 ? `${h}시간 전` : `${Math.floor(h/24)}일 전`; }
+function dateText(ts){ try{ return new Date(ts).toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" }); }catch{return "-";} }
+function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),1800); }
+function splitList(text){ return String(text || "").split(/[\n,]/).map(v=>v.trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i); }
+function normalizeLineId(line){
+  if(!line || line === LEGACY_PLACE_LEVEL || line === "__ALL__") return PLACE_LEVEL;
+  return String(line);
+}
+function normalizeText(v){
+  return String(v || "").toLowerCase().replace(/\s+/g,"").replace(/[^0-9a-z가-힣]/g,"");
+}
+function requestGroupKey(req){
+  if(req.requestKey) return String(req.requestKey);
+  const bucket = Math.floor((req.createdAt || 0) / (1000 * 60 * 10));
+  return [
+    normalizeText(req.placeName),
+    normalizeText(req.lineName),
+    normalizeText(req.memo),
+    normalizeText(req.contact),
+    bucket
+  ].join("|");
 }
 
-function toast(msg) {
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+function legacyLineId(line){
+  return normalizeLineId(line) === PLACE_LEVEL ? LEGACY_PLACE_LEVEL : normalizeLineId(line);
+}
+function lineLabel(line){ return normalizeLineId(line) === PLACE_LEVEL ? "장소 전체 줄" : normalizeLineId(line); }
+function activeCutoff(){ return now() - ACTIVE_MINUTES * 60 * 1000; }
+function cutoff(minutes){ return now() - minutes * 60 * 1000; }
+function safeIdFromName(name){
+  const cleaned = String(name || "place").trim().toLowerCase()
+    .replace(/\s+/g,"-")
+    .replace(/[^0-9a-z가-힣_-]/g,"")
+    .slice(0,34);
+  return `${cleaned || "place"}-${Math.random().toString(36).slice(2,7)}`;
+}
+function csvEscape(v){ const s=String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replaceAll('"','""')}"` : s; }
+function downloadCsv(filename, rows){
+  const csv = rows.map(row => row.map(csvEscape).join(",")).join("\n");
+  const blob = new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
-function toMillis(v) {
-  if (typeof v === 'number') return v;
-  if (v && typeof v.toMillis === 'function') return v.toMillis();
-  if (v && typeof v.seconds === 'number') return v.seconds * 1000;
-  return Date.now();
+function normalizeLines(raw){
+  if(!Array.isArray(raw)) return [];
+  return raw.map(item => {
+    if(typeof item === "string") return item.trim();
+    if(item && typeof item === "object") return String(item.name || item.label || item.id || "").trim();
+    return "";
+  }).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
 }
-
-function timeText(ts) {
-  if (!ts) return '-';
-  const d = new Date(toMillis(ts));
-  return d.toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+function normalizeAliases(raw){
+  if(!Array.isArray(raw)) return [];
+  return raw.map(v=>String(v || "").trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
 }
-
-function slugify(text) {
-  const base = String(text || '')
-    .trim()
-    .toLowerCase()
-    .replace(/정류장|정류소/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^0-9a-z가-힣-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  return base || `stop-${Date.now()}`;
-}
-
-function parseList(text) {
-  return String(text || '')
-    .split(/[\n,]/g)
-    .map(v => v.trim())
-    .filter(Boolean)
-    .map(v => v.toUpperCase())
-    .filter((v, i, arr) => arr.indexOf(v) === i);
-}
-
-function parseAliases(text) {
-  return String(text || '')
-    .split(/[\n,]/g)
-    .map(v => v.trim())
-    .filter(Boolean)
-    .filter((v, i, arr) => arr.indexOf(v) === i);
-}
-
-function statusLabel(status) {
-  const s = status || 'pending';
-  return s === 'pending' ? '대기'
-    : s === 'approved' ? '승인'
-    : s === 'done' ? '완료'
-    : s === 'rejected' ? '반려'
-    : s;
-}
-
-function requestById(id) { return requests.find(r => r.id === id); }
-function stopById(id) { return stops.find(s => s.id === id); }
-
-function watchData() {
-  onSnapshot(query(collection(db, 'stopRequests'), orderBy('createdAt', 'desc')), snap => {
-    requests = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    renderRequests();
-    renderStats();
-  }, err => {
-    console.error(err);
-    $('requestList').innerHTML = '<div class="empty">요청을 읽을 권한이 없습니다.<br>Firestore 규칙을 확인해주세요.</div>';
-  });
-
-  onSnapshot(query(collection(db, 'stops'), orderBy('name')), snap => {
-    stops = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    renderStops();
-    renderStats();
-  }, err => {
-    console.error(err);
-    $('stopList').innerHTML = '<div class="empty">정류장을 읽을 권한이 없습니다.<br>Firestore 규칙을 확인해주세요.</div>';
-  });
-}
-
-function renderStats() {
-  $('pendingCount').textContent = requests.filter(r => (r.status || 'pending') === 'pending').length;
-  $('stopCount').textContent = stops.length;
-}
-
-function renderRequests() {
-  const list = $('requestList');
-  const filtered = requestFilter === 'all'
-    ? requests
-    : requests.filter(r => (r.status || 'pending') === requestFilter);
-
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty">표시할 요청이 없습니다.</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(r => {
-    const status = r.status || 'pending';
-    return `
-      <div class="request-card ${selectedRequestId === r.id ? 'selected' : ''}" data-id="${esc(r.id)}">
-        <div class="request-top">
-          <div>
-            <div class="request-name">${esc(r.stopName || '이름 없음')}</div>
-            <div class="request-route">${esc(r.route || '버스번호 없음 / 정류장 전체 줄')}</div>
-          </div>
-          <span class="badge ${esc(status)}">${esc(statusLabel(status))}</span>
-        </div>
-        <div class="request-meta">
-          <div><b>위치 설명:</b> ${esc(r.memo || '-')}</div>
-          <div><b>연락처/메모:</b> ${esc(r.contact || '-')}</div>
-          <div><b>요청 시간:</b> ${esc(timeText(r.createdAt))}</div>
-          ${r.linkedStopId ? `<div><b>연결 정류장:</b> ${esc(r.linkedStopId)}</div>` : ''}
-        </div>
-        <div class="request-actions">
-          <button class="btn small primary" data-action="load-request" data-id="${esc(r.id)}">폼에 불러오기</button>
-          <button class="btn small green" data-action="quick-approve" data-id="${esc(r.id)}">바로 승인</button>
-          <button class="btn small" data-action="done-request" data-id="${esc(r.id)}">완료</button>
-          <button class="btn small danger" data-action="reject-request" data-id="${esc(r.id)}">반려</button>
-          <button class="btn small danger" data-action="delete-request" data-id="${esc(r.id)}">삭제</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderStops() {
-  const q = $('stopSearch').value.trim().toLowerCase();
-  const filtered = stops.filter(s => {
-    const hay = `${s.name || ''} ${(s.routes || []).join(' ')} ${(s.aliases || []).join(' ')}`.toLowerCase();
-    return !q || hay.includes(q);
-  });
-
-  if (!filtered.length) {
-    $('stopList').innerHTML = '<div class="empty">등록된 정류장이 없습니다.<br>오른쪽 폼에서 새 정류장을 등록하세요.</div>';
-    return;
-  }
-
-  $('stopList').innerHTML = filtered.map(s => {
-    const routes = Array.isArray(s.routes) && s.routes.length ? s.routes.join(', ') : '정류장 전체 줄';
-    const active = s.active !== false;
-    return `
-      <div class="stop-card ${selectedStopId === s.id ? 'selected' : ''}" data-id="${esc(s.id)}">
-        <div class="stop-top">
-          <div>
-            <div class="stop-name">${esc(s.name || s.id)}</div>
-            <div class="stop-routes">${esc(routes)}</div>
-          </div>
-          <span class="badge ${active ? 'approved' : 'rejected'}">${active ? '노출' : '숨김'}</span>
-        </div>
-        <div class="request-meta">
-          <div><b>ID:</b> ${esc(s.id)}</div>
-          <div><b>별칭:</b> ${esc((s.aliases || []).join(', ') || '-')}</div>
-        </div>
-        <div class="stop-actions">
-          <button class="btn small primary" data-action="edit-stop" data-id="${esc(s.id)}">수정</button>
-          <button class="btn small danger" data-action="delete-stop" data-id="${esc(s.id)}">삭제</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function resetForm() {
-  selectedRequestId = null;
-  selectedStopId = null;
-  $('formMode').textContent = '새 정류장 등록';
-  $('stopId').value = '';
-  $('stopId').disabled = false;
-  $('activeSelect').value = 'true';
-  $('stopName').value = '';
-  $('routesText').value = '';
-  $('aliasesText').value = '';
-  $('adminMemo').value = '';
-  $('linkedRequestBox').hidden = true;
-  $('linkedRequestBox').innerHTML = '';
-  $('approveRequestBtn').disabled = true;
-  $('deleteStopBtn').disabled = true;
-  renderRequests();
-  renderStops();
-}
-
-function fillFormFromRequest(id) {
-  const r = requestById(id);
-  if (!r) return;
-  selectedRequestId = id;
-  selectedStopId = null;
-  $('formMode').textContent = '요청 기반 등록';
-  $('stopName').value = r.stopName || '';
-  $('stopId').value = slugify(r.stopName || '');
-  $('stopId').disabled = false;
-  $('routesText').value = r.route && !/전체/.test(r.route) ? r.route : '';
-  $('aliasesText').value = '';
-  $('adminMemo').value = [
-    r.memo ? `위치 설명: ${r.memo}` : '',
-    r.contact ? `연락처/메모: ${r.contact}` : ''
-  ].filter(Boolean).join('\n');
-  $('activeSelect').value = 'true';
-  $('linkedRequestBox').hidden = false;
-  $('linkedRequestBox').innerHTML = `
-    <b>연결된 요청</b><br>
-    정류장명: ${esc(r.stopName || '-')}<br>
-    버스번호/노선명: ${esc(r.route || '-')}<br>
-    위치 설명: ${esc(r.memo || '-')}<br>
-    연락처/메모: ${esc(r.contact || '-')}
-  `;
-  $('approveRequestBtn').disabled = false;
-  $('deleteStopBtn').disabled = true;
-  renderRequests();
-  renderStops();
-}
-
-function fillFormFromStop(id) {
-  const s = stopById(id);
-  if (!s) return;
-  selectedStopId = id;
-  selectedRequestId = null;
-  $('formMode').textContent = '기존 정류장 수정';
-  $('stopId').value = s.id;
-  $('stopId').disabled = true;
-  $('stopName').value = s.name || '';
-  $('routesText').value = (s.routes || []).join('\n');
-  $('aliasesText').value = (s.aliases || []).join('\n');
-  $('adminMemo').value = s.adminMemo || '';
-  $('activeSelect').value = String(s.active !== false);
-  $('linkedRequestBox').hidden = true;
-  $('approveRequestBtn').disabled = true;
-  $('deleteStopBtn').disabled = false;
-  renderRequests();
-  renderStops();
-}
-
-function getFormStopData() {
-  const name = $('stopName').value.trim();
-  const rawId = $('stopId').value.trim() || slugify(name);
-  const id = slugify(rawId);
-  const routes = parseList($('routesText').value);
-  const aliases = parseAliases($('aliasesText').value);
-  const active = $('activeSelect').value === 'true';
-  const adminMemo = $('adminMemo').value.trim();
-
-  if (!name) throw new Error('정류장명을 입력해주세요');
-  if (!id) throw new Error('정류장 ID를 입력해주세요');
-
+function placeFromSnapshot(docSnap, source="places"){
+  const d = docSnap.data() || {};
+  const lines = Array.isArray(d.lines) ? d.lines : (Array.isArray(d.routes) ? d.routes : []);
   return {
-    id,
-    data: {
-      id,
-      name,
-      routes,
-      aliases,
-      active,
-      adminMemo,
-      updatedAt: serverTimestamp(),
-      updatedAtMs: Date.now(),
-      source: 'admin'
-    }
+    id:d.id || docSnap.id,
+    docId:docSnap.id,
+    name:d.name || d.placeName || d.stopName || docSnap.id,
+    aliases:normalizeAliases(d.aliases),
+    lines:normalizeLines(lines),
+    active:d.active !== false,
+    source,
+    updatedAt:toMillis(d.updatedAt || d.createdAt)
   };
 }
+function requestFromSnapshot(docSnap, source="placeRequests"){
+  const d = docSnap.data() || {};
+  const req = {
+    id:docSnap.id,
+    source,
+    placeName:d.placeName || d.stopName || d.name || "",
+    lineName:d.lineName || d.route || d.routeName || "",
+    memo:d.memo || d.locationMemo || d.description || "",
+    contact:d.contact || "",
+    status:d.status || "pending",
+    createdAt:toMillis(d.createdAt || d.serverCreatedAt),
+    requestKey:d.requestKey || "",
+    raw:d
+  };
+  req.groupKey = requestGroupKey(req);
+  req.linked = [{ source:req.source, id:req.id, status:req.status }];
+  return req;
+}
+function reportFromSnapshot(docSnap){
+  const d = docSnap.data() || {};
+  const rawLineId = d.lineId || d.route || PLACE_LEVEL;
+  return {
+    id:docSnap.id,
+    placeId:d.placeId || d.stopId || "",
+    lineId:normalizeLineId(rawLineId),
+    lineName:d.lineName || d.routeName || d.route || "",
+    rangeId:d.rangeId || "unknown",
+    createdAt:toMillis(d.createdAt),
+    raw:d
+  };
+}
+function mergePlaces(){
+  const map = new Map();
+  [...placesFromLegacy, ...placesFromNew].forEach(p => {
+    if(!p || !p.id) return;
+    const prev = map.get(p.id);
+    if(prev){
+      map.set(p.id, {
+        ...prev,
+        ...p,
+        aliases:[...new Set([...(prev.aliases||[]), ...(p.aliases||[])])],
+        lines:[...new Set([...(prev.lines||[]), ...(p.lines||[])])]
+      });
+    } else map.set(p.id, p);
+  });
+  placesCache = [...map.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name), "ko"));
+  renderAll();
+}
+function placeById(id){ return placesCache.find(p => p.id === id) || null; }
+function placeName(id){ return placeById(id)?.name || id || "알 수 없음"; }
 
-async function saveStopOnly() {
-  try {
-    const { id, data } = getFormStopData();
-    const exists = stopById(id);
-    await setDoc(doc(db, 'stops', id), {
-      ...data,
-      createdAt: exists?.createdAt || serverTimestamp(),
-      createdAtMs: exists?.createdAtMs || Date.now()
-    }, { merge:true });
-    selectedStopId = id;
-    selectedRequestId = null;
-    toast('정류장을 저장했어요');
-    fillFormFromStop(id);
-  } catch (e) {
-    console.error(e);
-    toast(e.message || '저장 실패');
+function initFirebase(){
+  if(!isConfigured){
+    $("firebaseStatus").textContent = "미설정";
+    showToast("Firebase 설정값을 확인해주세요");
+    return;
   }
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  $("firebaseStatus").textContent = "연결중";
+
+  onSnapshot(collection(db,"places"), snap => {
+    placesFromNew = snap.docs.map(d => placeFromSnapshot(d,"places"));
+    $("firebaseStatus").textContent = "연결됨";
+    touchSync(); mergePlaces();
+  }, err => { console.error(err); showToast("places 읽기 권한을 확인해주세요"); placesFromNew=[]; mergePlaces(); });
+
+  onSnapshot(collection(db,"stops"), snap => {
+    placesFromLegacy = snap.docs.map(d => placeFromSnapshot(d,"stops"));
+    touchSync(); mergePlaces();
+  }, err => { console.warn("stops 읽기 실패", err); placesFromLegacy=[]; mergePlaces(); });
+
+  onSnapshot(collection(db,"placeRequests"), snap => {
+    const newReqs = snap.docs.map(d => requestFromSnapshot(d,"placeRequests"));
+    const legacyReqs = requestsCache.filter(r => r.source === "stopRequests");
+    requestsCache = dedupeRequests([...newReqs, ...legacyReqs]);
+    touchSync(); renderAll();
+  }, err => { console.error(err); showToast("placeRequests 읽기 권한을 확인해주세요"); });
+
+  onSnapshot(collection(db,"stopRequests"), snap => {
+    const legacyReqs = snap.docs.map(d => requestFromSnapshot(d,"stopRequests"));
+    const newReqs = requestsCache.filter(r => r.source === "placeRequests");
+    requestsCache = dedupeRequests([...newReqs, ...legacyReqs]);
+    touchSync(); renderAll();
+  }, err => { console.warn("stopRequests 읽기 실패", err); });
+
+  onSnapshot(query(collection(db,"reports"), orderBy("createdAt", "desc"), limit(REPORT_LIMIT)), snap => {
+    reportsCache = snap.docs.map(reportFromSnapshot);
+    touchSync(); renderAll();
+  }, err => { console.error(err); showToast("reports 읽기 권한을 확인해주세요"); });
 }
-
-async function approveSelectedRequest() {
-  if (!selectedRequestId) return toast('먼저 요청을 불러오세요');
-  try {
-    const { id, data } = getFormStopData();
-    const exists = stopById(id);
-    await setDoc(doc(db, 'stops', id), {
-      ...data,
-      createdAt: exists?.createdAt || serverTimestamp(),
-      createdAtMs: exists?.createdAtMs || Date.now(),
-      requestId: selectedRequestId
-    }, { merge:true });
-
-    await updateDoc(doc(db, 'stopRequests', selectedRequestId), {
-      status: 'approved',
-      linkedStopId: id,
-      reviewedAt: serverTimestamp(),
-      reviewedAtMs: Date.now()
-    });
-
-    selectedStopId = id;
-    selectedRequestId = null;
-    toast('요청을 승인하고 정류장을 저장했어요');
-    fillFormFromStop(id);
-  } catch (e) {
-    console.error(e);
-    toast(e.message || '승인 실패');
-  }
-}
-
-async function quickApproveRequest(id) {
-  fillFormFromRequest(id);
-  await approveSelectedRequest();
-}
-
-async function updateRequestStatus(id, status) {
-  try {
-    await updateDoc(doc(db, 'stopRequests', id), {
+function dedupeRequests(list){
+  const map = new Map();
+  list.forEach(r => {
+    if(!r) return;
+    const key = r.groupKey || requestGroupKey(r);
+    const prev = map.get(key);
+    if(!prev){
+      map.set(key, { ...r, groupKey:key, linked:[...(r.linked || [{ source:r.source, id:r.id, status:r.status }])] });
+      return;
+    }
+    const linkedMap = new Map((prev.linked || []).map(x => [`${x.source}|${x.id}`, x]));
+    (r.linked || [{ source:r.source, id:r.id, status:r.status }]).forEach(x => linkedMap.set(`${x.source}|${x.id}`, x));
+    const status = [prev.status, r.status].includes("pending") ? "pending" : (r.status || prev.status);
+    map.set(key, {
+      ...prev,
+      ...r,
+      id:prev.id,
+      source:[...new Set([...(String(prev.source).split("+")), r.source])].filter(Boolean).join("+"),
       status,
-      reviewedAt: serverTimestamp(),
-      reviewedAtMs: Date.now()
+      createdAt:Math.max(prev.createdAt || 0, r.createdAt || 0),
+      linked:[...linkedMap.values()]
     });
-    if (selectedRequestId === id) resetForm();
-    toast(`요청을 ${statusLabel(status)} 처리했어요`);
-  } catch (e) {
-    console.error(e);
-    toast('요청 상태 변경 실패');
+  });
+  return [...map.values()].sort((a,b)=>b.createdAt-a.createdAt).slice(0, REQUEST_LIMIT * 2);
+}
+function touchSync(){ $("syncStatus").textContent = new Date().toLocaleTimeString("ko-KR", { hour:"2-digit", minute:"2-digit" }); }
+
+function clearForm(){
+  currentEditSource = "places";
+  $("placeId").value = "";
+  $("placeId").disabled = false;
+  $("placeName").value = "";
+  $("placeAliases").value = "";
+  $("placeLines").value = "";
+  $("placeActive").checked = true;
+  $("syncLegacyStops").checked = false;
+  $("placeName").focus();
+}
+function loadPlaceToForm(id){
+  const p = placeById(id);
+  if(!p) return;
+  currentEditSource = p.source || "places";
+  $("placeId").value = p.id;
+  $("placeId").disabled = true;
+  $("placeName").value = p.name;
+  $("placeAliases").value = (p.aliases || []).join("\n");
+  $("placeLines").value = (p.lines || []).join("\n");
+  $("placeActive").checked = p.active !== false;
+  $("syncLegacyStops").checked = p.source === "stops";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  showToast("수정할 장소를 불러왔어요");
+}
+function fillFormFromRequest(req){
+  const existing = findSimilarPlace(req.placeName);
+  if(existing){
+    loadPlaceToForm(existing.id);
+    const currentLines = splitList($("placeLines").value);
+    if(req.lineName && !currentLines.includes(req.lineName)) currentLines.push(req.lineName);
+    $("placeLines").value = currentLines.join("\n");
+    showToast("비슷한 기존 장소에 세부 줄을 추가했어요");
+  } else {
+    clearForm();
+    $("placeName").value = req.placeName;
+    $("placeLines").value = req.lineName || "";
+    $("placeAliases").value = req.memo || "";
+    showToast("요청 내용을 폼에 가져왔어요");
+  }
+  switchTab("places");
+}
+function findSimilarPlace(name){
+  const n = String(name || "").replace(/\s+/g,"").toLowerCase();
+  if(!n) return null;
+  return placesCache.find(p => String(p.name).replace(/\s+/g,"").toLowerCase() === n) || null;
+}
+async function savePlace(){
+  if(!db) return showToast("Firebase 연결이 필요해요");
+  const name = $("placeName").value.trim();
+  if(!name) return showToast("장소명을 입력해주세요");
+  const id = ($("placeId").value.trim() || safeIdFromName(name));
+  const aliases = splitList($("placeAliases").value);
+  const lines = splitList($("placeLines").value);
+  const active = $("placeActive").checked;
+  const isNew = !$("placeId").disabled;
+  const newPayload = {
+    id, name, aliases, lines, routes:lines, active,
+    updatedAt:serverTimestamp()
+  };
+  const legacyPayload = {
+    id, name, aliases, routes:lines, lines, active,
+    updatedAt:serverTimestamp()
+  };
+  if(isNew){
+    newPayload.createdAt = serverTimestamp();
+    legacyPayload.createdAt = serverTimestamp();
+  }
+  try{
+    let saved = false;
+    const errors = [];
+
+    try{
+      await setDoc(doc(db,"places",id), newPayload, { merge:true });
+      saved = true;
+      currentEditSource = "places";
+    }catch(err){
+      errors.push({ collection:"places", error:err });
+    }
+
+    // 기존 고객용/보안규칙과 맞추기 위해 체크 여부와 무관하게 stops에도 저장을 시도합니다.
+    try{
+      await setDoc(doc(db,"stops",id), legacyPayload, { merge:true });
+      saved = true;
+      if(currentEditSource !== "places") currentEditSource = "stops";
+    }catch(err){
+      errors.push({ collection:"stops", error:err });
+    }
+
+    if(!saved){
+      console.error("장소 저장 실패", errors);
+      throw errors[0]?.error || new Error("place write failed");
+    }
+
+    $("placeId").value = id;
+    $("placeId").disabled = true;
+    showToast("장소를 저장했어요");
+  }catch(err){ console.error(err); showToast("저장 권한을 확인해주세요"); }
+}
+async function deactivatePlace(){
+  if(!db) return showToast("Firebase 연결이 필요해요");
+  const id = $("placeId").value.trim();
+  if(!id) return showToast("비활성화할 장소를 선택해주세요");
+  if(!confirm("고객 화면에서 이 장소를 숨길까요?")) return;
+  try{
+    await updateDoc(doc(db,"places",id), { active:false, updatedAt:serverTimestamp() });
+    if($("syncLegacyStops").checked || currentEditSource === "stops"){
+      await updateDoc(doc(db,"stops",id), { active:false, updatedAt:serverTimestamp() }).catch(()=>{});
+    }
+    showToast("비활성화했어요");
+  }catch(err){ console.error(err); showToast("비활성화 권한을 확인해주세요"); }
+}
+function duplicatePlace(){
+  const name = $("placeName").value.trim();
+  if(!name) return showToast("복사할 장소를 먼저 선택해주세요");
+  $("placeId").value = safeIdFromName(name);
+  $("placeId").disabled = false;
+  showToast("새 ID로 복사 준비 완료");
+}
+
+function renderPlaces(){
+  const q = String($("placeSearch").value || "").trim().toLowerCase();
+  $("clearPlaceSearchBtn")?.classList.toggle("show", q.length > 0);
+  let list = placesCache.slice().sort((a,b)=>(b.updatedAt || 0) - (a.updatedAt || 0));
+  if(q){
+    list = list.filter(p => [p.id,p.name,...(p.aliases||[]),...(p.lines||[])].join(" ").toLowerCase().includes(q));
+  }
+  const total = list.length;
+  const visible = showAllPlaces ? list : list.slice(0,5);
+  const metaText = q
+    ? `검색 결과 ${total}개 중 ${visible.length}개 표시`
+    : `최근 등록/수정 ${Math.min(visible.length, total)}개 표시 · 전체 ${placesCache.length}개`;
+  if($("placeListMeta")) $("placeListMeta").textContent = metaText;
+  if($("togglePlaceAllBtn")){
+    $("togglePlaceAllBtn").textContent = showAllPlaces ? "5개만 보기" : "전체 보기";
+    $("togglePlaceAllBtn").style.display = total > 5 ? "inline-flex" : "none";
+  }
+  const wrap = $("placeList");
+  if(!visible.length){ wrap.innerHTML = `<div class="empty">${q ? "검색 결과가 없어요." : "등록된 장소가 없어요."}<br>왼쪽에서 첫 장소를 추가해보세요.</div>`; return; }
+  wrap.innerHTML = visible.map(p => `
+    <div class="item">
+      <div class="item-top">
+        <div>
+          <div class="item-title">${esc(p.name)} ${p.active ? "" : "<span class='chip red'>비활성</span>"}</div>
+          <div class="item-meta">ID: <span class="mono">${esc(p.id)}</span> · ${esc(p.source)} · 세부 줄 ${(p.lines||[]).length}개 · ${p.updatedAt ? "수정 " + dateText(p.updatedAt) : "최근 정보 없음"}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn small" data-edit-place="${esc(p.id)}">수정</button>
+          <button class="btn small" data-copy-place="${esc(p.id)}">복사</button>
+        </div>
+      </div>
+      <div class="chip-row">
+        ${(p.lines||[]).slice(0,5).map(line => `<span class="chip blue">${esc(line)}</span>`).join("") || `<span class="chip">세부 줄 없음</span>`}
+        ${(p.lines||[]).length > 5 ? `<span class="chip">+${(p.lines||[]).length-5}</span>` : ""}
+      </div>
+      ${(p.aliases||[]).length ? `<div class="chip-row">${p.aliases.slice(0,4).map(a=>`<span class="chip">검색어 ${esc(a)}</span>`).join("")}</div>` : ""}
+    </div>
+  `).join("");
+  wrap.querySelectorAll("[data-edit-place]").forEach(btn => btn.addEventListener("click", () => loadPlaceToForm(btn.dataset.editPlace)));
+  wrap.querySelectorAll("[data-copy-place]").forEach(btn => btn.addEventListener("click", () => { loadPlaceToForm(btn.dataset.copyPlace); duplicatePlace(); }));
+}
+
+function renderRequests(){
+  const q = String($("requestSearch")?.value || "").trim().toLowerCase();
+  $("clearRequestSearchBtn")?.classList.toggle("show", q.length > 0);
+  let list = showPendingOnly ? requestsCache.filter(r => r.status === "pending") : requestsCache.slice();
+  if(q){
+    list = list.filter(r => [r.placeName, r.lineName, r.memo, r.contact, r.status, r.source].join(" ").toLowerCase().includes(q));
+  }
+  list = list.sort((a,b)=>b.createdAt-a.createdAt);
+  const total = list.length;
+  const visible = showAllRequests ? list : list.slice(0,5);
+  $("onlyPendingBtn").textContent = showPendingOnly ? "대기만" : "전체 상태";
+  $("onlyPendingBtn").classList.toggle("on", showPendingOnly);
+  if($("toggleRequestAllBtn")){
+    $("toggleRequestAllBtn").textContent = showAllRequests ? "5개만 보기" : "전체 보기";
+    $("toggleRequestAllBtn").style.display = total > 5 ? "inline-flex" : "none";
+  }
+  if($("requestListMeta")){
+    $("requestListMeta").textContent = `${showPendingOnly ? "대기 요청" : "전체 요청"} ${total}개 중 ${visible.length}개 표시${q ? " · 검색 중" : ""}`;
+  }
+  const wrap = $("requestList");
+  if(!visible.length){ wrap.innerHTML = `<div class="empty">${q ? "검색된 요청이 없어요." : "검토할 요청이 없어요."}</div>`; return; }
+  wrap.innerHTML = visible.map(r => `
+    <div class="item ${r.status === "pending" ? "focus-card" : ""}">
+      <div class="item-top">
+        <div>
+          <div class="item-title">${esc(r.placeName || "장소명 없음")}</div>
+          <div class="item-meta">${esc(lineLabel(r.lineName || PLACE_LEVEL))} · ${dateText(r.createdAt)} · ${esc((r.linked||[]).map(x=>x.source).join(" + ") || r.source)} · 상태 ${esc(r.status)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn small" data-fill-request="${esc(r.groupKey)}">폼으로 가져오기</button>
+          <button class="btn small green" data-create-request="${esc(r.groupKey)}">신규 생성</button>
+          <button class="btn small" data-done-request="${esc(r.groupKey)}">처리완료</button>
+          <button class="btn small red" data-delete-request="${esc(r.groupKey)}">삭제</button>
+        </div>
+      </div>
+      <div class="chip-row">
+        ${r.lineName ? `<span class="chip blue">세부 줄 ${esc(r.lineName)}</span>` : `<span class="chip">세부 줄 미입력</span>`}
+        ${r.memo ? `<span class="chip amber">위치 ${esc(r.memo)}</span>` : ""}
+        ${r.contact ? `<span class="chip">연락 ${esc(r.contact)}</span>` : ""}
+        ${(r.linked||[]).length > 1 ? `<span class="chip green">중복 ${r.linked.length}건 묶음</span>` : ""}
+      </div>
+    </div>
+  `).join("");
+  wrap.querySelectorAll("[data-fill-request]").forEach(btn => btn.addEventListener("click", () => fillFormFromRequest(findReq(btn.dataset.fillRequest))));
+  wrap.querySelectorAll("[data-create-request]").forEach(btn => btn.addEventListener("click", () => createPlaceFromRequest(findReq(btn.dataset.createRequest))));
+  wrap.querySelectorAll("[data-done-request]").forEach(btn => btn.addEventListener("click", () => markRequest(btn.dataset.doneRequest, "done")));
+  wrap.querySelectorAll("[data-delete-request]").forEach(btn => btn.addEventListener("click", () => deleteRequest(btn.dataset.deleteRequest)));
+}
+function findReq(key){ return requestsCache.find(r => r.groupKey === key || `${r.source}|${r.id}` === key); }
+function reqTargets(reqOrKey){
+  const req = typeof reqOrKey === "string" ? findReq(reqOrKey) : reqOrKey;
+  if(!req) return [];
+  return (req.linked && req.linked.length) ? req.linked : [{ source:req.source, id:req.id }];
+}
+async function applyToRequestGroup(reqOrKey, action){
+  const targets = reqTargets(reqOrKey);
+  if(!targets.length) throw new Error("request target missing");
+  const results = await Promise.allSettled(targets.map(action));
+  if(!results.some(r => r.status === "fulfilled")){
+    throw results.find(r => r.status === "rejected")?.reason || new Error("request action failed");
+  }
+  return results;
+}
+async function createPlaceFromRequest(req){
+  if(!req || !db) return;
+  const existing = findSimilarPlace(req.placeName);
+  if(existing && !confirm(`비슷한 장소 '${existing.name}'가 있어요. 그래도 신규 생성할까요?`)) return;
+  const id = safeIdFromName(req.placeName);
+  const lines = req.lineName ? [req.lineName] : [];
+  const payload = {
+    id,
+    name:req.placeName || id,
+    aliases:req.memo ? [req.memo] : [],
+    lines,
+    routes:lines,
+    active:true,
+    createdAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  };
+  try{
+    let saved = false;
+    const errors = [];
+    try{
+      await setDoc(doc(db,"places",id), payload, { merge:true });
+      saved = true;
+    }catch(err){ errors.push({ collection:"places", error:err }); }
+    try{
+      await setDoc(doc(db,"stops",id), payload, { merge:true });
+      saved = true;
+    }catch(err){ errors.push({ collection:"stops", error:err }); }
+    if(!saved){
+      console.error("요청 장소 생성 실패", errors);
+      throw errors[0]?.error || new Error("request create failed");
+    }
+    await markRequest(req.groupKey, "approved", false);
+    showToast("요청으로 장소를 생성했어요");
+  }catch(err){ console.error(err); showToast("장소 생성 권한을 확인해주세요"); }
+}
+async function markRequest(key, status="done", toast=true){
+  if(!db) return;
+  try{
+    await applyToRequestGroup(key, target => updateDoc(doc(db, target.source, target.id), { status, updatedAt:serverTimestamp() }));
+    if(toast) showToast("묶인 요청 상태를 함께 변경했어요");
+  }catch(err){ console.error(err); showToast("요청 상태 변경 권한을 확인해주세요"); }
+}
+async function deleteRequest(key){
+  if(!db) return;
+  if(!confirm("이 요청을 삭제할까요? 중복 저장된 같은 요청도 함께 삭제됩니다.")) return;
+  try{
+    await applyToRequestGroup(key, target => deleteDoc(doc(db, target.source, target.id)));
+    showToast("묶인 요청을 함께 삭제했어요");
+  }
+  catch(err){ console.error(err); showToast("요청 삭제 권한을 확인해주세요"); }
+}
+
+function renderReports(){
+  const map = new Map();
+  reportsCache.forEach(r => {
+    const key = `${r.placeId}__${normalizeLineId(r.lineId)}`;
+    const item = map.get(key) || { placeId:r.placeId, lineId:normalizeLineId(r.lineId), total:0, m15:0, m30:0, latest:0 };
+    item.total += 1;
+    if(r.createdAt >= activeCutoff()) item.m15 += 1;
+    if(r.createdAt >= cutoff(30)) item.m30 += 1;
+    item.latest = Math.max(item.latest, r.createdAt);
+    map.set(key,item);
+  });
+  let rows = [...map.values()];
+  if(reportSummaryMode === "top15"){
+    rows.sort((a,b)=>(b.m15-a.m15) || (b.latest-a.latest));
+  }else if(reportSummaryMode === "top30"){
+    rows.sort((a,b)=>(b.m30-a.m30) || (b.latest-a.latest));
+  }else{
+    rows.sort((a,b)=>b.latest-a.latest);
+  }
+  const total = rows.length;
+  const visibleRows = showAllReportRows ? rows : rows.slice(0,5);
+  document.querySelectorAll("[data-report-mode]").forEach(btn => btn.classList.toggle("on", btn.dataset.reportMode === reportSummaryMode));
+  if($("toggleReportAllBtn")){
+    $("toggleReportAllBtn").textContent = showAllReportRows ? "5개만 보기" : "전체 보기";
+    $("toggleReportAllBtn").style.display = total > 5 ? "inline-flex" : "none";
+  }
+  if($("reportSummaryMeta")){
+    const modeLabel = reportSummaryMode === "top15" ? "최근 15분 TOP" : reportSummaryMode === "top30" ? "최근 30분 TOP" : "최근 활동";
+    $("reportSummaryMeta").textContent = `${modeLabel} ${total}개 중 ${visibleRows.length}개 표시`;
+  }
+  const tbody = $("reportSummaryBody");
+  if(!visibleRows.length){ tbody.innerHTML = `<tr><td colspan="6" class="muted">아직 제보가 없어요.</td></tr>`; }
+  else {
+    tbody.innerHTML = visibleRows.map(row => `
+      <tr>
+        <td>${esc(placeName(row.placeId))}<div class="item-meta mono">${esc(row.placeId)}</div></td>
+        <td>${esc(lineLabel(row.lineId))}</td>
+        <td><span class="num">${row.m15}</span></td>
+        <td><span class="num">${row.m30}</span></td>
+        <td><span class="num">${row.total}</span></td>
+        <td>${timeAgo(row.latest)}</td>
+      </tr>
+    `).join("");
+  }
+
+  const recent = reportsCache.slice(0,8);
+  const wrap = $("recentReportList");
+  if(!recent.length){ wrap.innerHTML = `<div class="empty">최근 제보가 없어요.</div>`; }
+  else {
+    wrap.innerHTML = recent.map(r => `
+      <div class="item">
+        <div class="item-top">
+          <div>
+            <div class="item-title">${esc(placeName(r.placeId))}</div>
+            <div class="item-meta">${esc(lineLabel(r.lineId))} · ${dateText(r.createdAt)}</div>
+          </div>
+          <div class="chip ${r.createdAt >= activeCutoff() ? "green" : ""}">${esc(RANGES[r.rangeId] || r.rangeId)}</div>
+        </div>
+      </div>
+    `).join("");
   }
 }
 
-async function deleteRequest(id) {
-  if (!confirm('이 요청을 삭제할까요?')) return;
-  try {
-    await deleteDoc(doc(db, 'stopRequests', id));
-    if (selectedRequestId === id) resetForm();
-    toast('요청을 삭제했어요');
-  } catch (e) {
-    console.error(e);
-    toast('요청 삭제 실패');
+function renderMetrics(){
+  $("metricPlaces").textContent = placesCache.filter(p=>p.active !== false).length;
+  $("metricLines").textContent = placesCache.reduce((s,p)=>s+(p.lines||[]).length,0);
+  $("metricRequests").textContent = requestsCache.filter(r=>r.status === "pending").length;
+  $("metricReports").textContent = reportsCache.filter(r=>r.createdAt >= activeCutoff()).length;
+}
+function renderAll(){ renderMetrics(); renderPlaces(); renderRequests(); renderReports(); }
+
+function tabId(name){ return `tab${name[0].toUpperCase()}${name.slice(1)}`; }
+function switchTab(name, move=true){
+  ["places","requests","reports"].forEach(t => {
+    $(tabId(t)).hidden = t !== name;
+    document.querySelector(`.tab-btn[data-tab="${t}"]`).classList.toggle("on", t === name);
+  });
+  if(location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
+  if(move){
+    requestAnimationFrame(() => $(tabId(name)).scrollIntoView({ behavior:"smooth", block:"start" }));
   }
 }
-
-async function deleteStop(id) {
-  if (!confirm('이 정류장을 삭제할까요? 고객 페이지에서 더 이상 선택되지 않을 수 있어요.')) return;
-  try {
-    await deleteDoc(doc(db, 'stops', id));
-    if (selectedStopId === id) resetForm();
-    toast('정류장을 삭제했어요');
-  } catch (e) {
-    console.error(e);
-    toast('정류장 삭제 실패');
-  }
+function downloadPlaces(){
+  const rows = [["id","name","aliases","lines","active","source"]];
+  placesCache.forEach(p => rows.push([p.id,p.name,(p.aliases||[]).join("|"),(p.lines||[]).join("|"),p.active,p.source]));
+  downloadCsv(`jigeumjul_places_${new Date().toISOString().slice(0,10)}.csv`, rows);
+}
+function downloadReports(){
+  const rows = [["id","placeId","placeName","lineId","rangeId","rangeLabel","createdAt"]];
+  reportsCache.forEach(r => rows.push([r.id,r.placeId,placeName(r.placeId),r.lineId,r.rangeId,RANGES[r.rangeId]||r.rangeId,new Date(r.createdAt).toISOString()]));
+  downloadCsv(`jigeumjul_reports_${new Date().toISOString().slice(0,10)}.csv`, rows);
+}
+function openCustomer(){
+  const url = new URL(location.href);
+  // GitHub Pages 배포 기준: 고객용 메인 파일을 index.html로 두는 흐름을 우선합니다.
+  url.pathname = url.pathname.replace(/[^/]*$/, "index.html");
+  location.href = url.toString();
 }
 
-$('requestTabs').addEventListener('click', e => {
-  const btn = e.target.closest('.tab');
-  if (!btn) return;
-  requestFilter = btn.dataset.filter;
-  document.querySelectorAll('#requestTabs .tab').forEach(b => b.classList.toggle('on', b === btn));
-  renderRequests();
-});
+function unlock(){
+  const code = $("adminCodeInput").value.trim();
+  if(code !== ADMIN_CODE) return showToast("관리자 코드가 달라요");
+  sessionStorage.setItem(SESSION_KEY,"1");
+  $("lockScreen").hidden = true;
+  showToast("관리자 화면을 열었어요");
+}
+function lock(){ sessionStorage.removeItem(SESSION_KEY); $("lockScreen").hidden=false; $("adminCodeInput").value=""; }
 
-$('requestList').addEventListener('click', e => {
-  const btn = e.target.closest('button[data-action]');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  const action = btn.dataset.action;
-  if (action === 'load-request') fillFormFromRequest(id);
-  if (action === 'quick-approve') quickApproveRequest(id);
-  if (action === 'done-request') updateRequestStatus(id, 'done');
-  if (action === 'reject-request') updateRequestStatus(id, 'rejected');
-  if (action === 'delete-request') deleteRequest(id);
-});
+$("unlockBtn").addEventListener("click", unlock);
+$("adminCodeInput").addEventListener("keydown", e => { if(e.key === "Enter") unlock(); });
+$("logoutBtn").addEventListener("click", lock);
+$("refreshBtn").addEventListener("click", () => location.reload());
+$("openCustomerBtn").addEventListener("click", openCustomer);
+$("newPlaceBtn").addEventListener("click", clearForm);
+$("savePlaceBtn").addEventListener("click", savePlace);
+$("deactivatePlaceBtn").addEventListener("click", deactivatePlace);
+$("duplicatePlaceBtn").addEventListener("click", duplicatePlace);
+$("placeSearch").addEventListener("input", () => { showAllPlaces = false; renderPlaces(); });
+$("clearPlaceSearchBtn").addEventListener("click", () => { $("placeSearch").value = ""; showAllPlaces = false; renderPlaces(); $("placeSearch").focus(); });
+$("togglePlaceAllBtn").addEventListener("click", () => { showAllPlaces = !showAllPlaces; renderPlaces(); });
+$("requestSearch").addEventListener("input", () => { showAllRequests = false; renderRequests(); });
+$("clearRequestSearchBtn").addEventListener("click", () => { $("requestSearch").value = ""; showAllRequests = false; renderRequests(); $("requestSearch").focus(); });
+$("toggleRequestAllBtn").addEventListener("click", () => { showAllRequests = !showAllRequests; renderRequests(); });
+$("downloadPlacesBtn").addEventListener("click", downloadPlaces);
+$("downloadReportsBtn").addEventListener("click", downloadReports);
+$("onlyPendingBtn").addEventListener("click", () => { showPendingOnly = !showPendingOnly; showAllRequests = false; renderRequests(); });
+$("toggleReportAllBtn").addEventListener("click", () => { showAllReportRows = !showAllReportRows; renderReports(); });
+document.querySelectorAll("[data-report-mode]").forEach(btn => btn.addEventListener("click", () => { reportSummaryMode = btn.dataset.reportMode; showAllReportRows = false; renderReports(); }));
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab, true)));
 
-$('stopList').addEventListener('click', e => {
-  const btn = e.target.closest('button[data-action]');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  const action = btn.dataset.action;
-  if (action === 'edit-stop') fillFormFromStop(id);
-  if (action === 'delete-stop') deleteStop(id);
-});
-
-$('stopName').addEventListener('input', () => {
-  if (!selectedStopId && !$('stopId').value.trim()) {
-    $('stopId').value = slugify($('stopName').value);
-  }
-});
-
-$('saveStopBtn').addEventListener('click', saveStopOnly);
-$('approveRequestBtn').addEventListener('click', approveSelectedRequest);
-$('resetFormBtn').addEventListener('click', resetForm);
-$('newStopBtn').addEventListener('click', resetForm);
-$('deleteStopBtn').addEventListener('click', () => {
-  const id = selectedStopId || $('stopId').value.trim();
-  if (id) deleteStop(id);
-});
-$('stopSearch').addEventListener('input', renderStops);
-$('clearSearchBtn').addEventListener('click', () => {
-  $('stopSearch').value = '';
-  renderStops();
-});
-$('refreshBtn').addEventListener('click', () => location.reload());
-
-watchData();
+if(sessionStorage.getItem(SESSION_KEY) === "1") $("lockScreen").hidden = true;
+const initialTab = location.hash.replace("#","").trim();
+if(["places","requests","reports"].includes(initialTab)) switchTab(initialTab, false);
+initFirebase();
+renderAll();
 </script>
 </body>
 </html>
