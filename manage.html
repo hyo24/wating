@@ -137,7 +137,9 @@
           <div class="action-row">
             <button class="btn accent" id="savePlaceBtn">저장하기</button>
             <button class="btn" id="duplicatePlaceBtn">복사해서 새 ID</button>
-            <button class="btn red" id="deactivatePlaceBtn">비활성화</button>
+            <button class="btn green" id="activatePlaceBtn">활성화</button>
+            <button class="btn" id="deactivatePlaceBtn">비활성화</button>
+            <button class="btn red" id="deletePlaceBtn">삭제 처리</button>
           </div>
         </div>
       </section>
@@ -157,6 +159,10 @@
             <div class="mini-actions">
               <div class="list-meta" id="placeListMeta">최근 등록/수정 5개만 표시</div>
               <div class="filter-row">
+                <button class="pill-btn on" data-place-status="all" type="button">전체</button>
+                <button class="pill-btn" data-place-status="active" type="button">활성</button>
+                <button class="pill-btn" data-place-status="inactive" type="button">비활성</button>
+                <button class="pill-btn" data-place-status="deleted" type="button">삭제됨</button>
                 <button class="pill-btn" id="togglePlaceAllBtn" type="button">전체 보기</button>
                 <button class="pill-btn" id="downloadPlacesBtn" type="button">CSV</button>
               </div>
@@ -306,6 +312,7 @@ let showAllPlaces = false;
 let showAllRequests = false;
 let showAllReportRows = false;
 let reportSummaryMode = "recent";
+let placeStatusFilter = "all";
 let toastTimer = null;
 
 const RANGES = {
@@ -388,10 +395,23 @@ function placeFromSnapshot(docSnap, source="places"){
     aliases:normalizeAliases(d.aliases),
     lines:normalizeLines(lines),
     active:d.active !== false,
+    deleted:d.deleted === true,
+    status:d.deleted === true ? "deleted" : (d.active === false ? "inactive" : "active"),
     source,
     updatedAt:toMillis(d.updatedAt || d.createdAt)
   };
 }
+function placeStatus(p){
+  if(p?.deleted === true) return "deleted";
+  return p?.active === false ? "inactive" : "active";
+}
+function placeStatusMeta(p){
+  const s = placeStatus(p);
+  if(s === "active") return { label:"활성", chip:"green", customer:"고객 화면 노출" };
+  if(s === "inactive") return { label:"비활성", chip:"amber", customer:"고객 화면 숨김" };
+  return { label:"삭제됨", chip:"red", customer:"고객 화면 숨김" };
+}
+function customerVisiblePlace(p){ return placeStatus(p) === "active"; }
 function requestFromSnapshot(docSnap, source="placeRequests"){
   const d = docSnap.data() || {};
   const req = {
@@ -566,12 +586,13 @@ async function savePlace(){
   const lines = splitList($("placeLines").value);
   const active = $("placeActive").checked;
   const isNew = !$("placeId").disabled;
+  const status = active ? "active" : "inactive";
   const newPayload = {
-    id, name, aliases, lines, routes:lines, active,
+    id, name, aliases, lines, routes:lines, active, deleted:false, status,
     updatedAt:serverTimestamp()
   };
   const legacyPayload = {
-    id, name, aliases, routes:lines, lines, active,
+    id, name, aliases, routes:lines, lines, active, deleted:false, status,
     updatedAt:serverTimestamp()
   };
   if(isNew){
@@ -609,18 +630,60 @@ async function savePlace(){
     showToast("장소를 저장했어요");
   }catch(err){ console.error(err); showToast("저장 권한을 확인해주세요"); }
 }
-async function deactivatePlace(){
+async function setPlaceLifecycle(id, mode){
   if(!db) return showToast("Firebase 연결이 필요해요");
+  if(!id) return showToast("장소를 먼저 선택해주세요");
+  const payload = {
+    active: mode === "active",
+    deleted: mode === "deleted",
+    status: mode,
+    updatedAt: serverTimestamp()
+  };
+  const targets = ["places", "stops"];
+  const results = await Promise.allSettled(
+    targets.map(col => setDoc(doc(db, col, id), payload, { merge:true }))
+  );
+  if(!results.some(r => r.status === "fulfilled")){
+    console.error("장소 상태 변경 실패", results);
+    throw results.find(r => r.status === "rejected")?.reason || new Error("status update failed");
+  }
+  const local = placeById(id);
+  if(local){
+    local.active = payload.active;
+    local.deleted = payload.deleted;
+    local.status = mode;
+    local.updatedAt = now();
+  }
+  if($("placeId").value.trim() === id){
+    $("placeActive").checked = mode === "active";
+  }
+  renderAll();
+}
+async function activatePlace(){
+  const id = $("placeId").value.trim();
+  if(!id) return showToast("활성화할 장소를 선택해주세요");
+  try{
+    await setPlaceLifecycle(id, "active");
+    showToast("활성화했어요 · 고객 화면에 다시 노출됩니다");
+  }catch(err){ console.error(err); showToast("활성화 권한을 확인해주세요"); }
+}
+async function deactivatePlace(){
   const id = $("placeId").value.trim();
   if(!id) return showToast("비활성화할 장소를 선택해주세요");
   if(!confirm("고객 화면에서 이 장소를 숨길까요?")) return;
   try{
-    await updateDoc(doc(db,"places",id), { active:false, updatedAt:serverTimestamp() });
-    if($("syncLegacyStops").checked || currentEditSource === "stops"){
-      await updateDoc(doc(db,"stops",id), { active:false, updatedAt:serverTimestamp() }).catch(()=>{});
-    }
-    showToast("비활성화했어요");
+    await setPlaceLifecycle(id, "inactive");
+    showToast("비활성화했어요 · 고객 화면에서 숨김 처리됩니다");
   }catch(err){ console.error(err); showToast("비활성화 권한을 확인해주세요"); }
+}
+async function softDeletePlace(){
+  const id = $("placeId").value.trim();
+  if(!id) return showToast("삭제 처리할 장소를 선택해주세요");
+  if(!confirm("이 장소를 삭제 처리할까요? 고객 화면에서는 숨겨지고 관리자 목록에는 '삭제됨'으로 남습니다.")) return;
+  try{
+    await setPlaceLifecycle(id, "deleted");
+    showToast("삭제 처리했어요 · 고객 화면에서 숨김 처리됩니다");
+  }catch(err){ console.error(err); showToast("삭제 처리 권한을 확인해주세요"); }
 }
 function duplicatePlace(){
   const name = $("placeName").value.trim();
@@ -633,32 +696,47 @@ function duplicatePlace(){
 function renderPlaces(){
   const q = String($("placeSearch").value || "").trim().toLowerCase();
   $("clearPlaceSearchBtn")?.classList.toggle("show", q.length > 0);
+  document.querySelectorAll("[data-place-status]").forEach(btn => btn.classList.toggle("on", btn.dataset.placeStatus === placeStatusFilter));
+
   let list = placesCache.slice().sort((a,b)=>(b.updatedAt || 0) - (a.updatedAt || 0));
-  if(q){
-    list = list.filter(p => [p.id,p.name,...(p.aliases||[]),...(p.lines||[])].join(" ").toLowerCase().includes(q));
+  if(placeStatusFilter !== "all"){
+    list = list.filter(p => placeStatus(p) === placeStatusFilter);
   }
+  if(q){
+    list = list.filter(p => [p.id,p.name,placeStatusMeta(p).label,...(p.aliases||[]),...(p.lines||[])].join(" ").toLowerCase().includes(q));
+  }
+
+  const counts = placesCache.reduce((acc,p)=>{ acc[placeStatus(p)] += 1; return acc; }, { active:0, inactive:0, deleted:0 });
   const total = list.length;
   const visible = showAllPlaces ? list : list.slice(0,5);
+  const filterLabel = placeStatusFilter === "all" ? "전체" : placeStatusFilter === "active" ? "활성" : placeStatusFilter === "inactive" ? "비활성" : "삭제됨";
   const metaText = q
-    ? `검색 결과 ${total}개 중 ${visible.length}개 표시`
-    : `최근 등록/수정 ${Math.min(visible.length, total)}개 표시 · 전체 ${placesCache.length}개`;
+    ? `${filterLabel} 검색 결과 ${total}개 중 ${visible.length}개 표시 · 활성 ${counts.active} / 비활성 ${counts.inactive} / 삭제 ${counts.deleted}`
+    : `${filterLabel} ${Math.min(visible.length, total)}개 표시 · 활성 ${counts.active} / 비활성 ${counts.inactive} / 삭제 ${counts.deleted}`;
   if($("placeListMeta")) $("placeListMeta").textContent = metaText;
   if($("togglePlaceAllBtn")){
     $("togglePlaceAllBtn").textContent = showAllPlaces ? "5개만 보기" : "전체 보기";
     $("togglePlaceAllBtn").style.display = total > 5 ? "inline-flex" : "none";
   }
   const wrap = $("placeList");
-  if(!visible.length){ wrap.innerHTML = `<div class="empty">${q ? "검색 결과가 없어요." : "등록된 장소가 없어요."}<br>왼쪽에서 첫 장소를 추가해보세요.</div>`; return; }
-  wrap.innerHTML = visible.map(p => `
+  if(!visible.length){ wrap.innerHTML = `<div class="empty">${q ? "검색 결과가 없어요." : "표시할 장소가 없어요."}<br>상단 상태 필터를 바꿔보거나 왼쪽에서 장소를 추가해보세요.</div>`; return; }
+  wrap.innerHTML = visible.map(p => {
+    const meta = placeStatusMeta(p);
+    const canDeactivate = placeStatus(p) === "active";
+    const canActivate = placeStatus(p) !== "active";
+    return `
     <div class="item">
       <div class="item-top">
         <div>
-          <div class="item-title">${esc(p.name)} ${p.active ? "" : "<span class='chip red'>비활성</span>"}</div>
-          <div class="item-meta">ID: <span class="mono">${esc(p.id)}</span> · ${esc(p.source)} · 세부 줄 ${(p.lines||[]).length}개 · ${p.updatedAt ? "수정 " + dateText(p.updatedAt) : "최근 정보 없음"}</div>
+          <div class="item-title">${esc(p.name)} <span class="chip ${meta.chip}">${meta.label}</span></div>
+          <div class="item-meta">ID: <span class="mono">${esc(p.id)}</span> · ${esc(p.source)} · ${meta.customer} · 세부 줄 ${(p.lines||[]).length}개 · ${p.updatedAt ? "수정 " + dateText(p.updatedAt) : "최근 정보 없음"}</div>
         </div>
         <div class="item-actions">
           <button class="btn small" data-edit-place="${esc(p.id)}">수정</button>
           <button class="btn small" data-copy-place="${esc(p.id)}">복사</button>
+          ${canActivate ? `<button class="btn small green" data-activate-place="${esc(p.id)}">활성화</button>` : ""}
+          ${canDeactivate ? `<button class="btn small" data-deactivate-place="${esc(p.id)}">비활성화</button>` : ""}
+          <button class="btn small red" data-delete-place="${esc(p.id)}">삭제</button>
         </div>
       </div>
       <div class="chip-row">
@@ -666,10 +744,13 @@ function renderPlaces(){
         ${(p.lines||[]).length > 5 ? `<span class="chip">+${(p.lines||[]).length-5}</span>` : ""}
       </div>
       ${(p.aliases||[]).length ? `<div class="chip-row">${p.aliases.slice(0,4).map(a=>`<span class="chip">검색어 ${esc(a)}</span>`).join("")}</div>` : ""}
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
   wrap.querySelectorAll("[data-edit-place]").forEach(btn => btn.addEventListener("click", () => loadPlaceToForm(btn.dataset.editPlace)));
   wrap.querySelectorAll("[data-copy-place]").forEach(btn => btn.addEventListener("click", () => { loadPlaceToForm(btn.dataset.copyPlace); duplicatePlace(); }));
+  wrap.querySelectorAll("[data-activate-place]").forEach(btn => btn.addEventListener("click", async () => { try{ await setPlaceLifecycle(btn.dataset.activatePlace, "active"); showToast("활성화했어요"); }catch(err){ console.error(err); showToast("활성화 권한을 확인해주세요"); } }));
+  wrap.querySelectorAll("[data-deactivate-place]").forEach(btn => btn.addEventListener("click", async () => { if(!confirm("고객 화면에서 이 장소를 숨길까요?")) return; try{ await setPlaceLifecycle(btn.dataset.deactivatePlace, "inactive"); showToast("비활성화했어요"); }catch(err){ console.error(err); showToast("비활성화 권한을 확인해주세요"); } }));
+  wrap.querySelectorAll("[data-delete-place]").forEach(btn => btn.addEventListener("click", async () => { if(!confirm("이 장소를 삭제 처리할까요? 고객 화면에서는 숨겨집니다.")) return; try{ await setPlaceLifecycle(btn.dataset.deletePlace, "deleted"); showToast("삭제 처리했어요"); }catch(err){ console.error(err); showToast("삭제 처리 권한을 확인해주세요"); } }));
 }
 
 function renderRequests(){
@@ -748,6 +829,8 @@ async function createPlaceFromRequest(req){
     lines,
     routes:lines,
     active:true,
+    deleted:false,
+    status:"active",
     createdAt:serverTimestamp(),
     updatedAt:serverTimestamp()
   };
@@ -851,8 +934,8 @@ function renderReports(){
 }
 
 function renderMetrics(){
-  $("metricPlaces").textContent = placesCache.filter(p=>p.active !== false).length;
-  $("metricLines").textContent = placesCache.reduce((s,p)=>s+(p.lines||[]).length,0);
+  $("metricPlaces").textContent = placesCache.filter(customerVisiblePlace).length;
+  $("metricLines").textContent = placesCache.filter(customerVisiblePlace).reduce((s,p)=>s+(p.lines||[]).length,0);
   $("metricRequests").textContent = requestsCache.filter(r=>r.status === "pending").length;
   $("metricReports").textContent = reportsCache.filter(r=>r.createdAt >= activeCutoff()).length;
 }
@@ -870,8 +953,8 @@ function switchTab(name, move=true){
   }
 }
 function downloadPlaces(){
-  const rows = [["id","name","aliases","lines","active","source"]];
-  placesCache.forEach(p => rows.push([p.id,p.name,(p.aliases||[]).join("|"),(p.lines||[]).join("|"),p.active,p.source]));
+  const rows = [["id","name","aliases","lines","active","deleted","status","source"]];
+  placesCache.forEach(p => rows.push([p.id,p.name,(p.aliases||[]).join("|"),(p.lines||[]).join("|"),p.active,p.deleted,placeStatus(p),p.source]));
   downloadCsv(`jigeumjul_places_${new Date().toISOString().slice(0,10)}.csv`, rows);
 }
 function downloadReports(){
@@ -902,11 +985,14 @@ $("refreshBtn").addEventListener("click", () => location.reload());
 $("openCustomerBtn").addEventListener("click", openCustomer);
 $("newPlaceBtn").addEventListener("click", clearForm);
 $("savePlaceBtn").addEventListener("click", savePlace);
+$("activatePlaceBtn").addEventListener("click", activatePlace);
 $("deactivatePlaceBtn").addEventListener("click", deactivatePlace);
+$("deletePlaceBtn").addEventListener("click", softDeletePlace);
 $("duplicatePlaceBtn").addEventListener("click", duplicatePlace);
 $("placeSearch").addEventListener("input", () => { showAllPlaces = false; renderPlaces(); });
 $("clearPlaceSearchBtn").addEventListener("click", () => { $("placeSearch").value = ""; showAllPlaces = false; renderPlaces(); $("placeSearch").focus(); });
 $("togglePlaceAllBtn").addEventListener("click", () => { showAllPlaces = !showAllPlaces; renderPlaces(); });
+document.querySelectorAll("[data-place-status]").forEach(btn => btn.addEventListener("click", () => { placeStatusFilter = btn.dataset.placeStatus; showAllPlaces = false; renderPlaces(); }));
 $("requestSearch").addEventListener("input", () => { showAllRequests = false; renderRequests(); });
 $("clearRequestSearchBtn").addEventListener("click", () => { $("requestSearch").value = ""; showAllRequests = false; renderRequests(); $("requestSearch").focus(); });
 $("toggleRequestAllBtn").addEventListener("click", () => { showAllRequests = !showAllRequests; renderRequests(); });
